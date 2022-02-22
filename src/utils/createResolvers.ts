@@ -3,7 +3,7 @@ import { unCapitalize } from './capitalize';
 import { writeFile } from './writeFile';
 import path from 'path';
 
-function betweenMarkers(text, begin, end) {
+function betweenMarkers(text: string, begin: string, end: string) {
   var firstChar = text.indexOf(begin) + begin.length;
   var lastChar = text.indexOf(end);
   var newText = text.substring(firstChar, lastChar);
