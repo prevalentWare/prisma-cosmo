@@ -18,7 +18,7 @@ const createBaseResolversFile = async (gqlModels: GQLModel[] | undefined) => {
 
     `;
   await writeFile(
-    path.join(process.cwd(), `prisma/generated/resolvers.ts`),
+    path.join(process.cwd(), `prisma/generated/graphql/resolvers.ts`),
     baseFile
   );
 };

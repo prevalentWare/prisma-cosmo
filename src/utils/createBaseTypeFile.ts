@@ -28,7 +28,7 @@ const createBaseTypeFile = async (gqlModels: GQLModel[] | undefined) => {
   `;
 
   await writeFile(
-    path.join(process.cwd(), `prisma/generated/types.ts`),
+    path.join(process.cwd(), `prisma/generated/graphql/types.ts`),
     baseFile
   );
 };

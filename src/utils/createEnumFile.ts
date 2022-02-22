@@ -17,7 +17,7 @@ const createEnumFile = async (enums: RegExpMatchArray | null) => {
   export {GQLEnums}
   `;
 
-  await writeFile(path.join(process.cwd(), `prisma/generated/enums.ts`), ens);
+  await writeFile(path.join(process.cwd(), `prisma/generated/graphql/enums.ts`), ens);
 };
 
 export { createEnumFile };

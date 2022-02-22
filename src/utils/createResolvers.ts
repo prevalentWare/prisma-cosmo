@@ -157,7 +157,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
   await writeFile(
     path.join(
       process.cwd(),
-      `prisma/generated/${model.name.toLowerCase()}/resolvers.ts`
+      `prisma/generated/graphql/${model.name.toLowerCase()}/resolvers.ts`
     ),
     resolverFile
   );

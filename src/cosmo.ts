@@ -23,9 +23,10 @@ const cosmo = async () => {
     }
   );
 
-  await rmrf('prisma/generated');
+  await rmrf('prisma/generated/graphql');
 
   createDirectory('prisma/generated');
+  createDirectory('prisma/generated/graphql');
   // parse models to object
   const models = file.match(/model([^}]+)}/g);
   const parsedModels = models?.map((m: string) => {
@@ -40,9 +41,6 @@ const cosmo = async () => {
   const gqlModels = parsedModels?.map((model) => {
     return generateTypeObject(model);
   });
-
-  // create directory
-  await createDirectory('prisma/generated');
 
   // create file containing the types for every model
   gqlModels?.map(async (gqlModel) => {
