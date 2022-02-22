@@ -12,6 +12,16 @@ console.log(
   chalk.bold.blueBright(figlet.textSync('Cosmo', { horizontalLayout: 'full' }))
 );
 
+console.log(
+  chalk.bold.blueBright(figlet.textSync('by', { horizontalLayout: 'fitted' }))
+);
+
+console.log(
+  chalk.bold.blueBright(
+    figlet.textSync('prevalentWare', { horizontalLayout: 'fitted' })
+  )
+);
+
 const program = new Command();
 program
   .version('0.0.1')
