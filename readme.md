@@ -4,6 +4,10 @@
 
 This code generates SDL-first Graphql types and resolvers based on a Prisma schema.
 
+## Installation
+
+`yarn add @prevalentware/prisma-cosmo`
+
 ## Usage
 
 `yarn cosmo`
