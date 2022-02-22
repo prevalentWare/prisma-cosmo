@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { cosmo } from './cosmo';
 import { Command } from 'commander';
 import { default as chalk } from 'chalk';
