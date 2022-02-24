@@ -7,6 +7,20 @@ const generateTypeObject = (model: GQLModel) => {
   const gqlFields = model.fields.map((field) => {
     return `${field.name}: ${field.gqlType}`;
   });
+
+  const gqlUpdateFields = model.fields
+    .filter(
+      (f) =>
+        (['String', 'Float', 'Int', 'Boolean', 'DateTime', 'Json'].includes(
+          f.gqlType.replace('!', '')
+        ) ||
+          f.gqlType.replace('!', '').toLowerCase().includes('enum')) &&
+        f.name !== 'createdAt' &&
+        f.name !== 'updatedAt'
+    )
+    .map((field) => {
+      return `${field.name}: ${field.gqlType.replace('!', '')}Input`;
+    });
   const gqlModel = `
   import {gql} from 'apollo-server-micro'
 
@@ -20,7 +34,7 @@ const generateTypeObject = (model: GQLModel) => {
     ${unCapitalize(model.name)}(id:String!):${model.name}
   }
 
-  input InputCreate${model.name}{
+  input ${model.name}CreateInput{
     ${gqlFields.filter((f) => {
       return (
         (f.includes('String') ||
@@ -36,25 +50,12 @@ const generateTypeObject = (model: GQLModel) => {
     })}
   }
 
-  input InputWhere${model.name}{
+  input ${model.name}WhereUniqueInput{
     id:String!
   }
 
-  input InputUpdate${model.name}{
-  ${gqlFields
-    .filter((f) => {
-      return (
-        (f.includes('String') ||
-          f.includes('Int') ||
-          f.includes('Float') ||
-          f.includes('Boolean') ||
-          f.includes('Json') ||
-          f.toLocaleLowerCase().includes('enum') ||
-          f.includes('DateTime')) &&
-        !f.includes('createdAt') &&
-        !f.includes('updatedAt')
-      );
-    })
+  input ${model.name}UpdateInput{
+  ${gqlUpdateFields
     .map((f) => {
       return f.replace('!', '');
     })
@@ -62,13 +63,13 @@ const generateTypeObject = (model: GQLModel) => {
   }
 
   type Mutation {
-  create${model.name}(data:InputCreate${model.name}):${model.name}
+  create${model.name}(data:${model.name}CreateInput):${model.name}
 
-  update${model.name}(where:InputWhere${model.name}!, data:InputUpdate${
+  update${model.name}(where:${model.name}WhereUniqueInput!, data:${
     model.name
-  } ):${model.name}
+  }UpdateInput ):${model.name}
 
-  delete${model.name}(where: InputWhere${model.name}!):${model.name}
+  delete${model.name}(where: ${model.name}WhereUniqueInput!):${model.name}
 
     }
   \`

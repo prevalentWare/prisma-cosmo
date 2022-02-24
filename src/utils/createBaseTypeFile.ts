@@ -19,6 +19,24 @@ const createBaseTypeFile = async (gqlModels: GQLModel[] | undefined) => {
     const genericTypes = gql\`
     scalar DateTime
     scalar Json
+    input StringInput{
+      set:String
+    }
+    input FloatInput{
+      set:Float
+    }
+    input BooleanInput{
+      set:Boolean
+    }
+    input IntInput{
+      set:Int
+    }
+    input DateTimeInput{
+      set:DateTime
+    }
+    input JsonInput{
+      set:Json
+    }
     \`;
 
     export const types = [genericTypes, GQLEnums, ${gqlModels

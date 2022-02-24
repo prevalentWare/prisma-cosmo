@@ -94,10 +94,10 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
           .join(',')}
     },
     Query: {
-        get${model.name}s: async () => {
+        ${unCapitalize(model.name)}s: async () => {
         return await prisma.${unCapitalize(model.name)}.findMany({});
         },
-        get${model.name}: async (_, args) => {
+        ${unCapitalize(model.name)}: async (_, args) => {
         return await prisma.${unCapitalize(model.name)}.findUnique({
             where: {
             id: args.id,

@@ -9,7 +9,13 @@ const createEnumFile = async (enums: RegExpMatchArray | null) => {
   const GQLEnums = gql\`
     ${enums
       ?.map((en) => {
-        return en.replace(/(?<=\@)(.*?)(?=\))/g, '').replace(/@\)/g, '');
+        const name = en.match(/(?<=enum )(.*?)(?= \{)/g);
+        return `
+        ${en.replace(/(?<=\@)(.*?)(?=\))/g, '').replace(/@\)/g, '')}
+        input ${name ? name[0] : ''}Input{
+          set:${name ? name[0] : ''}
+        }
+        `;
       })
       .join('\n')}
   \`
