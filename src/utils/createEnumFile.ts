@@ -9,15 +9,18 @@ const createEnumFile = async (enums: RegExpMatchArray | null) => {
   const GQLEnums = gql\`
     ${enums
       ?.map((en) => {
-        return en;
+        return en.replace(/(?<=\@)(.*?)(?=\))/g, '').replace(/@\)/g, '');
       })
-      .join(';')}
+      .join('\n')}
   \`
 
   export {GQLEnums}
   `;
 
-  await writeFile(path.join(process.cwd(), `prisma/generated/graphql/enums.ts`), ens);
+  await writeFile(
+    path.join(process.cwd(), `prisma/generated/graphql/enums.ts`),
+    ens
+  );
 };
 
 export { createEnumFile };

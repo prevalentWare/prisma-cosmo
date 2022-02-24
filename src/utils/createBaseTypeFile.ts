@@ -4,7 +4,6 @@ import path from 'path';
 import { writeFile } from './writeFile';
 
 const createBaseTypeFile = async (gqlModels: GQLModel[] | undefined) => {
-
   const baseFile = `
     import { gql } from 'apollo-server-micro';
     ${gqlModels
@@ -19,6 +18,7 @@ const createBaseTypeFile = async (gqlModels: GQLModel[] | undefined) => {
 
     const genericTypes = gql\`
     scalar DateTime
+    scalar Json
     \`;
 
     export const types = [genericTypes, GQLEnums, ${gqlModels

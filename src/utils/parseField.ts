@@ -14,7 +14,9 @@ const typeMapping = (field: PrismaField) => {
       mappedType = `${mappedType}!`;
     }
     if (
-      ['String', 'Float', 'Int', 'DateTime', 'Boolean'].includes(field.type) ||
+      ['String', 'Float', 'Int', 'DateTime', 'Boolean', 'Json'].includes(
+        field.type
+      ) ||
       field.type.toLowerCase().includes('enum')
     ) {
       isRelatedModel = false;

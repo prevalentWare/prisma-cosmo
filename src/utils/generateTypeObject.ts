@@ -26,6 +26,7 @@ const generateTypeObject = (model: GQLModel) => {
           f.includes('Int') ||
           f.includes('Float') ||
           f.includes('Boolean') ||
+          f.includes('Json') ||
           f.toLocaleLowerCase().includes('enum') ||
           f.includes('DateTime')) &&
         !f.includes('createdAt') &&
@@ -46,6 +47,7 @@ const generateTypeObject = (model: GQLModel) => {
           f.includes('Int') ||
           f.includes('Float') ||
           f.includes('Boolean') ||
+          f.includes('Json') ||
           f.toLocaleLowerCase().includes('enum') ||
           f.includes('DateTime')) &&
         !f.includes('createdAt') &&
