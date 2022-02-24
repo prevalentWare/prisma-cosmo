@@ -15,6 +15,7 @@ This code generates SDL-first Graphql types and resolvers based on a Prisma sche
 ## How Cosmo works?
 
 Cosmo will parse your `schema.prisma` and will generate Graphql basic CRUD types and resolvers for your Prsima models. Cosmo will expose the generated code so that you can build upon that.
+
 ## Support
 
 Please create an issue if you find any bugs! This is work in progress!
