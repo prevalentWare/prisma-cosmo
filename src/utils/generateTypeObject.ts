@@ -1,4 +1,5 @@
 import { GQLModel } from '../types';
+import { unCapitalize } from './capitalize';
 
 const generateTypeObject = (model: GQLModel) => {
   //TODO: change query id field
@@ -15,8 +16,8 @@ const generateTypeObject = (model: GQLModel) => {
   }
 
   type Query{
-    get${model.name}s:[${model.name}]
-    get${model.name}(id:String!):${model.name}
+    ${unCapitalize(model.name)}s:[${model.name}]
+    ${unCapitalize(model.name)}(id:String!):${model.name}
   }
 
   input InputCreate${model.name}{
