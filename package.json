@@ -20,7 +20,7 @@
     "create": "npm run build && npm run test",
     "prettier-format": "prettier --config .prettierrc prisma/generated/**/*.ts --write",
     "start": "ts-node src/index.ts && prettier --config .prettierrc prisma/generated/**/*.ts --write",
-    "build": "rimraf lib && tsc -p . --newLine crlf"
+    "build": "rimraf lib && tsc -p . --newLine lf"
   },
   "devDependencies": {
     "@types/clear": "^0.1.2",
