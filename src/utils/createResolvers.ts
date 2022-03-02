@@ -12,6 +12,10 @@ function betweenMarkers(text: string, begin: string, end: string) {
 
 const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
   const relatedFields = model.fields.filter((f) => f.isRelatedModel);
+  if (model.name == 'AcademicSample') {
+    // console.log(model);
+    // console.log(relatedFields);
+  }
   const resolverFile = `
     import prisma from 'config/prisma';
 
@@ -27,8 +31,6 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
                 (fld) => fld.type === model.name
               )[0];
               if (relatedModelRelation.isArray) {
-                // TODO MANY TO MANY
-                console.log('many to many', model.name, relatedModel.name);
                 return `${rf.name}: async (parent, _) => {
                   return await prisma.${unCapitalize(
                     relatedModel.name
@@ -45,11 +47,19 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
                   });
                 }`;
               } else {
+                if (rf.name === 'sequencingQualities') {
+                  console.log('many to one', model.name, relatedModel.name);
+                  console.log(relatedModel);
+                }
                 //many to one
                 return `${rf.name}: async (parent, _) => {
                   return await prisma.${unCapitalize(rf.type)}.findMany({
                   where: {
-                      ${unCapitalize(model.name)}: {
+                      ${
+                        relatedModel.fields.filter(
+                          (f) => f.type === model.name
+                        )[0].name
+                      }: {
                         is: {
                           id: {
                             equals: parent.id,
@@ -70,7 +80,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
                 'fields:[',
                 ']'
               );
-              console.log('rf', relatedField);
+              // console.log('rf', relatedField);
               return `
               ${rf.name}: async (parent, _) => {
               return await prisma.${unCapitalize(rf.type)}.findUnique({
