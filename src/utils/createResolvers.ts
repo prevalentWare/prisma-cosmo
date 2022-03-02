@@ -12,10 +12,6 @@ function betweenMarkers(text: string, begin: string, end: string) {
 
 const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
   const relatedFields = model.fields.filter((f) => f.isRelatedModel);
-  if (model.name == 'AcademicSample') {
-    // console.log(model);
-    // console.log(relatedFields);
-  }
   const resolverFile = `
     import prisma from 'config/prisma';
 
@@ -47,10 +43,6 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
                   });
                 }`;
               } else {
-                if (rf.name === 'sequencingQualities') {
-                  console.log('many to one', model.name, relatedModel.name);
-                  console.log(relatedModel);
-                }
                 //many to one
                 return `${rf.name}: async (parent, _) => {
                   return await prisma.${unCapitalize(rf.type)}.findMany({
@@ -80,7 +72,6 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
                 'fields:[',
                 ']'
               );
-              // console.log('rf', relatedField);
               return `
               ${rf.name}: async (parent, _) => {
               return await prisma.${unCapitalize(rf.type)}.findUnique({
