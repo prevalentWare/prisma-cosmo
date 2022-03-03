@@ -23,10 +23,10 @@ const cosmo = async () => {
     }
   );
 
-  await rmrf('prisma/generated/graphql');
+  await rmrf('./prisma/generated/graphql');
 
-  createDirectory('prisma/generated');
-  createDirectory('prisma/generated/graphql');
+  createDirectory('./prisma/generated');
+  createDirectory('./prisma/generated/graphql');
   // parse models to object
   const models = file.match(/model([^}]+)}/g);
   const parsedModels = models?.map((m: string) => {

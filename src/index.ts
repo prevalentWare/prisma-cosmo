@@ -7,7 +7,8 @@ import clear from 'clear';
 import * as figlet from 'figlet';
 
 // Console Welcome
-// clear();
+
+clear();
 console.log(
   chalk.bold.blueBright(figlet.textSync('Cosmo', { horizontalLayout: 'full' }))
 );
@@ -27,4 +28,9 @@ program
   .version('0.0.1')
   .description('A tool that generates Graphql files from the Prisma Schema');
 
-cosmo();
+const main = async () => {
+  await cosmo();
+  console.log('finished file output');
+};
+
+main();
