@@ -72,7 +72,6 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
                 'fields:[',
                 ']'
               );
-              console.log(rf);
               if (rf.required) {
                 return `
                 ${rf.name}: async (parent, _) => {
