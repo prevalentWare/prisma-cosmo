@@ -1,6 +1,6 @@
 {
   "name": "@prevalentware/prisma-cosmo",
-  "version": "0.0.15",
+  "version": "0.1.0",
   "description": "Prisma GraphQL generator",
   "main": "./lib/index.js",
   "author": "prevalentWare",
@@ -37,7 +37,7 @@
     "path": "^0.12.7",
     "prettier": "^2.5.1",
     "rimraf": "^3.0.2",
-    "ts-node": "^10.5.0",
+    "ts-node": "^10.7.0",
     "typescript": "^4.5.5"
   }
 }

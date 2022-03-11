@@ -72,15 +72,32 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
                 'fields:[',
                 ']'
               );
-              return `
-              ${rf.name}: async (parent, _) => {
-              return await prisma.${unCapitalize(rf.type)}.findUnique({
-                  where: {
-                  id: parent.${relatedField},
-                  },
-              });
-          }
-              `;
+              if (rf.required) {
+                return `
+                ${rf.name}: async (parent, _) => {
+                return await prisma.${unCapitalize(rf.type)}.findUnique({
+                    where: {
+                    id: parent.${relatedField},
+                    },
+                });
+                }
+                `;
+              } else {
+                return `
+                ${rf.name}: async (parent, _) => {
+                  if (parent.${unCapitalize(rf.type)}Id) {
+                    return await prisma.${unCapitalize(rf.type)}.findUnique({
+                        where: {
+                        id: parent.${relatedField},
+                        },
+                    });
+                  }
+                  else{
+                    return null;
+                  }
+                }
+                `;
+              }
             } else {
               //one to one
               return `${rf.name}: async (parent, _) => {
