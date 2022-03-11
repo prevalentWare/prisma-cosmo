@@ -72,6 +72,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
                 'fields:[',
                 ']'
               );
+              console.log(rf);
               if (rf.required) {
                 return `
                 ${rf.name}: async (parent, _) => {
@@ -85,7 +86,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
               } else {
                 return `
                 ${rf.name}: async (parent, _) => {
-                  if (parent.${unCapitalize(rf.type)}Id) {
+                  if (parent.${relatedField}) {
                     return await prisma.${unCapitalize(rf.type)}.findUnique({
                         where: {
                         id: parent.${relatedField},
