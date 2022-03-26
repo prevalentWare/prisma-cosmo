@@ -100,10 +100,18 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
               }
             } else {
               //one to one
+              const relationName = rf.attributes
+                .filter((a) => a.includes('@relation'))[0]
+                .split('"')[1];
+              const relatedFieldName = model.fields.filter(
+                (f) =>
+                  f.attributes.filter((a) => a.includes(relationName)).length >
+                  0
+              )[0].name;
               return `${rf.name}: async (parent, _) => {
                 return await prisma.${unCapitalize(rf.type)}.findUnique({
                   where:{
-                    ${unCapitalize(model.name)}Id:parent.id
+                    ${unCapitalize(relatedFieldName)}Id:parent.id
                   }
                 })
               }`;

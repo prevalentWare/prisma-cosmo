@@ -36,16 +36,17 @@ const generateTypeObject = (model: GQLModel) => {
 
   input ${model.name}CreateInput{
     ${gqlFields.filter((f) => {
+      const type = f.split(':')[1].trim();
       return (
-        (f.includes('String') ||
-          f.includes('Int') ||
-          f.includes('Float') ||
-          f.includes('Boolean') ||
-          f.includes('Json') ||
-          f.toLocaleLowerCase().includes('enum') ||
-          f.includes('DateTime')) &&
-        !f.includes('createdAt') &&
-        !f.includes('updatedAt')
+        (type == 'String' ||
+          type == 'Int' ||
+          type == 'Float' ||
+          type == 'Boolean' ||
+          type == 'Json' ||
+          type.toLocaleLowerCase().includes('enum') ||
+          type == 'DateTime') &&
+        type != 'createdAt' &&
+        type != 'updatedAt'
       );
     })}
   }
