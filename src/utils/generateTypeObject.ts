@@ -36,7 +36,8 @@ const generateTypeObject = (model: GQLModel) => {
 
   input ${model.name}CreateInput{
     ${gqlFields.filter((f) => {
-      const type = f.split(':')[1].trim();
+      const name = f.split(':')[0];
+      const type = f.split(':')[1].trim().replace('!', '');
       return (
         (type == 'String' ||
           type == 'Int' ||
@@ -45,8 +46,8 @@ const generateTypeObject = (model: GQLModel) => {
           type == 'Json' ||
           type.toLocaleLowerCase().includes('enum') ||
           type == 'DateTime') &&
-        type != 'createdAt' &&
-        type != 'updatedAt'
+        name != 'createdAt' &&
+        name != 'updatedAt'
       );
     })}
   }
