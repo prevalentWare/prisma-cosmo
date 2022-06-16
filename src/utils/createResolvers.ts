@@ -27,7 +27,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
                 (fld) => fld.type === model.name
               )[0];
               if (relatedModelRelation.isArray) {
-                return `${rf.name}: async (parent, _) => {
+                return `${rf.name}: async (parent:any, _:any) => {
                   return await prisma.${unCapitalize(
                     relatedModel.name
                   )}.findMany({
@@ -44,7 +44,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
                 }`;
               } else {
                 //many to one
-                return `${rf.name}: async (parent, _) => {
+                return `${rf.name}: async (parent:any, _:any) => {
                   return await prisma.${unCapitalize(rf.type)}.findMany({
                   where: {
                       ${
@@ -74,7 +74,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
               );
               if (rf.required) {
                 return `
-                ${rf.name}: async (parent, _) => {
+                ${rf.name}: async (parent:any, _:any) => {
                 return await prisma.${unCapitalize(rf.type)}.findUnique({
                     where: {
                     id: parent.${relatedField},
@@ -84,7 +84,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
                 `;
               } else {
                 return `
-                ${rf.name}: async (parent, _) => {
+                ${rf.name}: async (parent:any, _:any) => {
                   if (parent.${relatedField}) {
                     return await prisma.${unCapitalize(rf.type)}.findUnique({
                         where: {
@@ -103,7 +103,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
               const relationName = rf.attributes
                 .filter((a) => a.includes('@relation'))[0]
                 .split('"')[1];
-              console.log(relationName);
+  
               const relatedField = model.fields.filter(
                 (f) =>
                   f.attributes.filter((a) => a.includes(relationName)).length >
@@ -124,7 +124,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
                 'fields:[',
                 ']'
               );
-              return `${rf.name}: async (parent, _) => {
+              return `${rf.name}: async (parent:any, _:any) => {
                 return await prisma.${unCapitalize(rf.type)}.findUnique({
                   where:{
                     ${relationFieldName}:parent.id
@@ -139,7 +139,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
         ${unCapitalize(model.name)}s: async () => {
         return await prisma.${unCapitalize(model.name)}.findMany({});
         },
-        ${unCapitalize(model.name)}: async (_, args) => {
+        ${unCapitalize(model.name)}: async (_:any, args:any) => {
         return await prisma.${unCapitalize(model.name)}.findUnique({
             where: {
             id: args.id,
@@ -148,7 +148,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
         },
     },
     Mutation:{
-      create${model.name}:async (_, args)=>{
+      create${model.name}:async (_:any, args:any)=>{
         return await prisma.${unCapitalize(model.name)}.create({
           data:{...args.data, ${model.fields
             .filter(
@@ -163,7 +163,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
             .join(',')} }
         })
       },
-      update${model.name}:async (_, args)=>{
+      update${model.name}:async (_:any, args:any)=>{
         return await prisma.${unCapitalize(model.name)}.update({
           where:{
             id:args.where.id
@@ -182,7 +182,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
             .join(',')}}
         })
       },
-      delete${model.name}:async (_, args)=>{
+      delete${model.name}:async (_:any, args:any)=>{
         return await prisma.${unCapitalize(model.name)}.delete({
           where:{
             id:args.where.id

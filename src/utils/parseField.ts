@@ -35,6 +35,7 @@ const parseField = (field: string) => {
     .split(' ');
 
   const finalType = type?.replace('?', '').replace('[', '').replace(']', '');
+
   return typeMapping({
     name,
     type: finalType,
