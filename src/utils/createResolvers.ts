@@ -100,37 +100,47 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
               }
             } else {
               //one to one
-              const relationName = rf.attributes
-                .filter((a) => a.includes('@relation'))[0]
-                .split('"')[1];
-  
-              const relatedField = model.fields.filter(
-                (f) =>
-                  f.attributes.filter((a) => a.includes(relationName)).length >
-                  0
-              )[0];
-              const relatedModel = parsedModels.filter(
-                (pm) => pm.name === relatedField.type
-              )[0];
-              const relatedModelRelation = relatedModel.fields.filter(
-                (fld) => fld.type === model.name
-              )[0];
-
-              const relationFieldName = betweenMarkers(
-                relatedModelRelation.attributes
+              if (rf.attributes.length > 0) {
+                const relationName = rf.attributes
                   .filter((a) => a.includes('@relation'))[0]
-                  .split(',')
-                  .filter((a) => a.includes('fields'))[0],
-                'fields:[',
-                ']'
-              );
-              return `${rf.name}: async (parent:any, _:any) => {
-                return await prisma.${unCapitalize(rf.type)}.findUnique({
-                  where:{
-                    ${relationFieldName}:parent.id
-                  }
-                })
-              }`;
+                  .split('"')[1];
+
+                const relatedField = model.fields.filter(
+                  (f) =>
+                    f.attributes.filter((a) => a.includes(relationName))
+                      .length > 0
+                )[0];
+                const relatedModel = parsedModels.filter(
+                  (pm) => pm.name === relatedField.type
+                )[0];
+                const relatedModelRelation = relatedModel.fields.filter(
+                  (fld) => fld.type === model.name
+                )[0];
+
+                const relationFieldName = betweenMarkers(
+                  relatedModelRelation.attributes
+                    .filter((a) => a.includes('@relation'))[0]
+                    .split(',')
+                    .filter((a) => a.includes('fields'))[0],
+                  'fields:[',
+                  ']'
+                );
+                return `${rf.name}: async (parent:any, _:any) => {
+                  return await prisma.${unCapitalize(rf.type)}.findUnique({
+                    where:{
+                      ${relationFieldName}:parent.id
+                    }
+                  })
+                }`;
+              } else {
+                return `${rf.name}: async (parent:any, _:any) => {
+                  return await prisma.${unCapitalize(rf.type)}.findUnique({
+                    where:{
+                      ${unCapitalize(model.name)}Id:parent.id
+                    }
+                  })
+                }`;
+              }
             }
           })
           .join(',')}
