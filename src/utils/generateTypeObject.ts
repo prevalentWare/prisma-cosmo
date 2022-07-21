@@ -19,7 +19,8 @@ const generateTypeObject = (model: GQLModel) => {
         f.name !== 'updatedAt'
     )
     .map((field) => {
-      return `${field.name}: ${field.gqlType.replace('!', '')}Input`;
+      const fld = field.gqlType.replace('!', '');
+      return `${field.name}: ${fld}${fld !== 'Json' ? 'Input' : ''}`;
     });
   const gqlModel = `
   import {gql} from 'apollo-server-micro'

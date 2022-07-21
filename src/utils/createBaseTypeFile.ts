@@ -34,9 +34,6 @@ const createBaseTypeFile = async (gqlModels: GQLModel[] | undefined) => {
     input DateTimeInput{
       set:DateTime
     }
-    input JsonInput{
-      set:Json
-    }
     \`;
 
     export const types = [genericTypes, GQLEnums, ${gqlModels
