@@ -11,7 +11,7 @@ const generateTypeObject = (model: GQLModel) => {
   const gqlUpdateFields = model.fields
     .filter(
       (f) =>
-        (['String', 'Float', 'Int', 'Boolean', 'DateTime', 'Json'].includes(
+        (['String', 'Float', 'Int', 'Boolean', 'DateTime', 'Json','Decimal'].includes(
           f.gqlType.replace('!', '')
         ) ||
           f.gqlType.replace('!', '').toLowerCase().includes('enum')) &&
@@ -45,6 +45,7 @@ const generateTypeObject = (model: GQLModel) => {
           type == 'Float' ||
           type == 'Boolean' ||
           type == 'Json' ||
+          type == 'Decimal' ||
           type.toLocaleLowerCase().includes('enum') ||
           type == 'DateTime') &&
         name != 'createdAt' &&

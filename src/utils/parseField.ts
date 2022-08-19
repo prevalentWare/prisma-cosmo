@@ -14,7 +14,7 @@ const typeMapping = (field: PrismaField) => {
       mappedType = `${mappedType}!`;
     }
     if (
-      ['String', 'Float', 'Int', 'DateTime', 'Boolean', 'Json'].includes(
+      ['String', 'Float', 'Int', 'DateTime', 'Boolean', 'Json','Decimal'].includes(
         field.type
       ) ||
       field.type.toLowerCase().includes('enum')
@@ -43,6 +43,7 @@ const parseField = (field: string) => {
     isArray: type?.includes('['),
     isId: attributes.includes('@id'),
     isUnique: attributes.includes('@unique'),
+    isMoney:attributes.includes('@Money'),
     gqlType: '',
     isRelatedModel: false,
     attributes: attributes,

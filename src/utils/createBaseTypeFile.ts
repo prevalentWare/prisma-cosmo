@@ -19,6 +19,7 @@ const createBaseTypeFile = async (gqlModels: GQLModel[] | undefined) => {
     const genericTypes = gql\`
     scalar DateTime
     scalar Json
+    scalar Decimal
     input StringInput{
       set:String
     }
@@ -33,6 +34,9 @@ const createBaseTypeFile = async (gqlModels: GQLModel[] | undefined) => {
     }
     input DateTimeInput{
       set:DateTime
+    }
+    input DecimalInput{
+      set:Decimal
     }
     \`;
 
