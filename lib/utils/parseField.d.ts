@@ -7,6 +7,7 @@ declare const parseField: (field: string) => {
     isArray: boolean;
     required: boolean;
     isUnique: boolean;
+    isMoney: boolean;
     attributes: string[];
 };
 export { parseField };

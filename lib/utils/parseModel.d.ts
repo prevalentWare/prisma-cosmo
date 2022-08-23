@@ -9,6 +9,7 @@ declare const parseModel: (model: string) => {
         isArray: boolean;
         required: boolean;
         isUnique: boolean;
+        isMoney: boolean;
         attributes: string[];
     }[];
 };

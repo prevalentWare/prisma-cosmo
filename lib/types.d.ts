@@ -5,6 +5,7 @@ interface PrismaField {
     isArray: boolean;
     required: boolean;
     isUnique: boolean;
+    isMoney: boolean;
     gqlType: string;
     isRelatedModel: boolean;
     attributes: string[];
