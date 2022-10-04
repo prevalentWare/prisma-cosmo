@@ -1,19 +1,30 @@
 import { GQLModel } from '../types';
 import { unCapitalize } from './capitalize';
 
-const generateTypeObject = (model: GQLModel) => {
+const generateSchemaObject = (model: GQLModel) => {
   //TODO: change query id field
 
   const gqlFields = model.fields.map((field) => {
+    field.gqlType=field.gqlType.replace("DateTime", "AWSDateTime")
+    field.gqlType=field.gqlType.replace("Json", "AWSJSON")
     return `${field.name}: ${field.gqlType}`;
   });
 
+
+
   const gqlUpdateFields = model.fields
+
     .filter(
       (f) =>
-        (['String', 'Float', 'Int', 'Boolean', 'DateTime', 'Json','Decimal'].includes(
-          f.gqlType.replace('!', '')
-        ) ||
+        ([
+          'String',
+          'Float',
+          'Int',
+          'Boolean',
+          'AWSDateTime',
+          'AWSJSON',
+          'Decimal',
+        ].includes(f.gqlType.replace('!', '')) ||
           f.gqlType.replace('!', '').toLowerCase().includes('enum')) &&
         f.name !== 'createdAt' &&
         f.name !== 'updatedAt'
@@ -22,16 +33,12 @@ const generateTypeObject = (model: GQLModel) => {
       const fld = field.gqlType.replace('!', '');
       return `${field.name}: ${fld}${fld !== 'Json' ? 'Input' : ''}`;
     });
+
   const gqlModel = `
-  import {gql} from 'apollo-server-micro'
-  const ${model.name}Types = gql\`
   type ${model.name}{
     ${gqlFields}
   }
-  type Query{
-    ${unCapitalize(model.name)}s:[${model.name}]
-    ${unCapitalize(model.name)}(id:String!):${model.name}
-  }
+
   input ${model.name}CreateInput{
     ${gqlFields.filter((f) => {
       const name = f.split(':')[0];
@@ -41,18 +48,22 @@ const generateTypeObject = (model: GQLModel) => {
           type == 'Int' ||
           type == 'Float' ||
           type == 'Boolean' ||
-          type == 'Json' ||
+          type == 'AWSJSON' ||
           type == 'Decimal' ||
           type.toLocaleLowerCase().includes('enum') ||
-          type == 'DateTime') &&
+          type == 'AWSDateTime') &&
         name != 'createdAt' &&
         name != 'updatedAt'
       );
     })}
   }
+
   input ${model.name}WhereUniqueInput{
     id:String!
   }
+
+  
+
   input ${model.name}UpdateInput{
   ${gqlUpdateFields
     .map((f) => {
@@ -60,18 +71,9 @@ const generateTypeObject = (model: GQLModel) => {
     })
     .join('\n')}
   }
-  type Mutation {
-  create${model.name}(data:${model.name}CreateInput):${model.name}
-  update${model.name}(where:${model.name}WhereUniqueInput!, data:${
-    model.name
-  }UpdateInput ):${model.name}
-  delete${model.name}(where: ${model.name}WhereUniqueInput!):${model.name}
-    }
-  \`
-  export {${model.name}Types}
-    `;
+  `;
 
   return { name: model.name, model: gqlModel };
 };
 
-export { generateTypeObject };
+export { generateSchemaObject };

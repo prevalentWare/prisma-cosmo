@@ -11,6 +11,11 @@ import { generateTypeObject } from './utils/generateTypeObject';
 import { parseModel } from './utils/parseModel';
 import rimraf from 'rimraf';
 
+
+import { createBaseSchemasFile } from './utils/createBaseSchemasFile';
+import { generateSchemaObject } from './utils/generateSchemaObject';
+
+
 const readFile = promisify(fs.readFile);
 const rmrf = promisify(rimraf);
 
@@ -46,6 +51,18 @@ const cosmo = async () => {
   gqlModels?.map(async (gqlModel) => {
     await createTypeFile(gqlModel);
   });
+
+  //----------
+  //create file Schemas for every model
+  
+  const gqlSchemas = parsedModels?.map((model) => {
+    return generateSchemaObject(model);
+  });
+  
+    await createBaseSchemasFile (gqlSchemas,enums);
+ 
+
+  //----------
 
   // create base type file for exporting all the types
   await createBaseTypeFile(parsedModels);
