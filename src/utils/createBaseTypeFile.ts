@@ -20,6 +20,7 @@ const createBaseTypeFile = async (gqlModels: GQLModel[] | undefined) => {
     scalar DateTime
     scalar Json
     scalar Decimal
+    scalar BigInt
     input StringInput{
       set:String
     }
