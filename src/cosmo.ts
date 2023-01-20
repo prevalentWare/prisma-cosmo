@@ -29,9 +29,11 @@ const cosmo = async () => {
   createDirectory('./prisma/generated/graphql');
   // parse models to object
   const models = file.match(/model([^}]+)}/g);
-  const parsedModels = models?.map((m: string) => {
-    return parseModel(m);
-  });
+  const parsedModels = models
+    ?.filter((el) => !el.includes('cosmo-ignore'))
+    .map((m: string) => {
+      return parseModel(m);
+    });
 
   // create file for enums
   const enums = file.match(/enum([^}]+)}/g);
