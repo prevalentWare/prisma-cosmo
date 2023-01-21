@@ -9,13 +9,14 @@ const createBaseTypeFile = async (gqlModels: GQLModel[] | undefined) => {
     ${gqlModels
       ?.map(
         (model) =>
-          `import { ${capitalize(
+       
+          `import  ${capitalize(
             model.name
-          )}Types } from './${model.name.toLowerCase()}/types'`
+          )}Types  from './${model.name.toLowerCase()}/${model.name.toLowerCase()}.graphql'`
       )
       .join(';')}
     import { GQLEnums } from './enums';
-
+    import 'graphql-import-node'
     const genericTypes = gql\`
     scalar DateTime
     scalar Json
