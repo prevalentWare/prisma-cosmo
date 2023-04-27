@@ -30,7 +30,10 @@ program
 
 const main = async () => {
   await cosmo();
+
   console.log('finished file output');
+
 };
+
 
 main();
