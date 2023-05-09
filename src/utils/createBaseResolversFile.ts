@@ -20,7 +20,7 @@ const createBaseResolversFile = async (gqlModels: GQLModel[] | undefined) => {
         export default resolverArray;
       `;
     await writeFile(
-      path.join(process.cwd(), `prisma/generated/aws/models/resolvers.ts`),
+      path.join(process.cwd(), `prisma/generated/aws/models/index.ts`),
       baseFile
     );
   }
