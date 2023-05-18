@@ -23,6 +23,7 @@ const typeMapping = (field: PrismaField) => {
         'Boolean',
         'Json',
         'Decimal',
+        'Bytes',
       ].includes(field.type) ||
       field.type.toLowerCase().includes('enum')
     ) {

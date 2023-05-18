@@ -11,16 +11,25 @@ const generateTypeObject = (model: GQLModel) => {
   const gqlUpdateFields = model.fields
     .filter(
       (f) =>
-        (['String', 'Float', 'Int', 'Boolean', 'DateTime', 'Json','Decimal'].includes(
-          f.gqlType.replace('!', '')
-        ) ||
+        ([
+          'String',
+          'Float',
+          'Int',
+          'Boolean',
+          'DateTime',
+          'Json',
+          'Decimal',
+          'Bytes',
+        ].includes(f.gqlType.replace('!', '')) ||
           f.gqlType.replace('!', '').toLowerCase().includes('enum')) &&
         f.name !== 'createdAt' &&
         f.name !== 'updatedAt'
     )
     .map((field) => {
       const fld = field.gqlType.replace('!', '');
-      return `${field.name}: ${fld}${fld !== 'Json' ? 'Input' : ''}`;
+      return `${field.name}: ${fld}${
+        !['Json', 'Bytes'].includes(fld) ? 'Input' : ''
+      }`;
     });
   const gqlModel = `
   import {gql} from 'apollo-server-micro'
@@ -46,6 +55,7 @@ const generateTypeObject = (model: GQLModel) => {
           type == 'Boolean' ||
           type == 'Json' ||
           type == 'Decimal' ||
+          type == 'Bytes' ||
           type.toLocaleLowerCase().includes('enum') ||
           type == 'DateTime') &&
         name != 'createdAt' &&
