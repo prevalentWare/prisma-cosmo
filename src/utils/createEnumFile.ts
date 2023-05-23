@@ -23,10 +23,12 @@ const createEnumFile = async (enums: RegExpMatchArray | null) => {
   export {GQLEnums}
   `;
 
-  await writeFile(
-    path.join(process.cwd(), `prisma/generated/graphql/enums.ts`),
-    ens
-  );
+  if (enums && enums?.length > 0) {
+    await writeFile(
+      path.join(process.cwd(), `prisma/generated/graphql/enums.ts`),
+      ens
+    );
+  }
 };
 
 export { createEnumFile };
