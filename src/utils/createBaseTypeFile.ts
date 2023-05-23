@@ -4,6 +4,8 @@ import path from 'path';
 import { writeFile } from './writeFile';
 
 const createBaseTypeFile = async (gqlModels: GQLModel[] | undefined) => {
+  const hasEnums = JSON.stringify(gqlModels).includes('enum');
+  console.log('hasEnums', hasEnums);
   const baseFile = `
     import { gql } from 'apollo-server-micro';
     ${gqlModels
@@ -14,7 +16,8 @@ const createBaseTypeFile = async (gqlModels: GQLModel[] | undefined) => {
           )}Types } from './${model.name.toLowerCase()}/types'`
       )
       .join(';')}
-    import { GQLEnums } from './enums';
+    
+    ${hasEnums ? "import { GQLEnums } from './enums'" : ''};
 
     const genericTypes = gql\`
     scalar DateTime
@@ -42,9 +45,11 @@ const createBaseTypeFile = async (gqlModels: GQLModel[] | undefined) => {
     }
     \`;
 
-    export const types = [genericTypes, GQLEnums, ${gqlModels
-      ?.map((model) => `${capitalize(model.name)}Types`)
-      .join(', ')}];
+    export const types = [genericTypes, ${
+      hasEnums ? 'GQLEnums,' : ''
+    } ${gqlModels
+    ?.map((model) => `${capitalize(model.name)}Types`)
+    .join(', ')}];
 
   `;
 
