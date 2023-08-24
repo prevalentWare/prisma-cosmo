@@ -16,6 +16,7 @@ const createDataLoaders = async (model: GQLModel, parsedModels: GQLModel[]) => {
   const resolverFile = `
     import { default as DataLoader } from 'dataloader';
     import { PrismaClient, ${relatedFields.map(i=> i.type.charAt(0).toUpperCase() + i.type.slice(1))}} from '@prisma/client'
+    import { getDB } from '../../db';
     
   
       ${relatedFields
@@ -32,10 +33,10 @@ const createDataLoaders = async (model: GQLModel, parsedModels: GQLModel[]) => {
           if (relatedModelRelation.isArray) {
             return `
             //many to many
-              const ${rf.name}Loader = (db: PrismaClient) =>
-              
+              const ${rf.name}Loader = () =>
               async (ids: readonly string[]): Promise<(${rf.type.charAt(0).toUpperCase() + rf.type.slice(1)} | undefined)[]> => {
-                      const ${rf.name}= await db.${unCapitalize(relatedModel.name)}.findMany({
+                const db = await getDB()     
+                const ${rf.name}= await db.${unCapitalize(relatedModel.name)}.findMany({
                         where: {
                           ${relatedModelRelation.name}: {
                             some: {
@@ -79,10 +80,9 @@ const createDataLoaders = async (model: GQLModel, parsedModels: GQLModel[]) => {
             return `
                 //many to one
             
-                const ${rf.name}Loader = (db: PrismaClient) =>
-              
-                async (ids: readonly string[]): Promise<(${rf.type.charAt(0).toUpperCase() + rf.type.slice(1)}[] | undefined)[]> => {
-                        const ${rf.name}= await db.${unCapitalize(rf.type)}.findMany({
+                const ${rf.name}Loader = () =>async (ids: readonly string[]): Promise<(${rf.type.charAt(0).toUpperCase() + rf.type.slice(1)}[] | undefined)[]> => {
+                  const db = await getDB()      
+                  const ${rf.name}= await db.${unCapitalize(rf.type)}.findMany({
                             where: {
                                 ${relatedModel.fields.filter((f) => f.type === model.name)[0].name}: {
                                   is: {
@@ -108,9 +108,9 @@ const createDataLoaders = async (model: GQLModel, parsedModels: GQLModel[]) => {
           );
           return `
             //one to many
-            const ${rf.name}Loader = (db: PrismaClient) =>              
-            async (ids: readonly string[]): Promise<(${rf.type.charAt(0).toUpperCase() + rf.type.slice(1)} | undefined)[]> => {
-                    const ${rf.name}=  await db.${unCapitalize(rf.type)}.findMany({
+            const ${rf.name}Loader = () => async (ids: readonly string[]): Promise<(${rf.type.charAt(0).toUpperCase() + rf.type.slice(1)} | undefined)[]> => {
+              const db = await getDB()      
+              const ${rf.name}=  await db.${unCapitalize(rf.type)}.findMany({
                           where: {
                             id: { in: [...ids] },
                           },
@@ -148,8 +148,8 @@ const createDataLoaders = async (model: GQLModel, parsedModels: GQLModel[]) => {
             );
             return `
             //one to one
-            const ${rf.name}Loader = (db: PrismaClient) =>              
-            async (ids: readonly string[]): Promise<(${rf.type.charAt(0).toUpperCase() + rf.type.slice(1)} | undefined)[]> => {
+            const ${rf.name}Loader = () => async (ids: readonly string[]): Promise<(${rf.type.charAt(0).toUpperCase() + rf.type.slice(1)} | undefined)[]> => {
+              const db = await getDB()
               const ${rf.name}=await db.${unCapitalize(rf.type)}.findMany({
                       where:{
                         ${relationFieldName}:{in:[...ids]}
@@ -162,8 +162,8 @@ const createDataLoaders = async (model: GQLModel, parsedModels: GQLModel[]) => {
           } else {
             return `
             //one to one
-            const ${rf.name}Loader = (db: PrismaClient) =>
-            async (ids: readonly string[]): Promise<(${rf.type.charAt(0).toUpperCase() + rf.type.slice(1)} | undefined)[]> => {
+            const ${rf.name}Loader = () => async (ids: readonly string[]): Promise<(${rf.type.charAt(0).toUpperCase() + rf.type.slice(1)} | undefined)[]> => {
+              const db = await getDB()
               const ${rf.name}= await db.${unCapitalize(rf.type)}.findMany({
                       where:{
                         ${unCapitalize(model.name)}Id:{in:[...ids]}
@@ -178,7 +178,7 @@ const createDataLoaders = async (model: GQLModel, parsedModels: GQLModel[]) => {
       })
       .join('')}
 
-  const ${unCapitalize(model.name)}DataLoader = (db: PrismaClient)=> ( {
+  const ${unCapitalize(model.name)}DataLoader =  {
     ${relatedFields.map(i=>{
       // console.log(milist)
       // ${milist.find()}
@@ -187,9 +187,9 @@ const createDataLoaders = async (model: GQLModel, parsedModels: GQLModel[]) => {
       verifyTypo==typeName?typeName=typeName+'[]':typeName
 
       return`
-       ${i.name}Loader: new DataLoader <string,${typeName} | undefined>(${i.name}Loader(db))`
+       ${i.name}Loader: new DataLoader <string,${typeName} | undefined>(${i.name}Loader())`
     })}
-    });    
+    };    
     export { ${unCapitalize(model.name)}DataLoader };
       `;
   await writeFile(

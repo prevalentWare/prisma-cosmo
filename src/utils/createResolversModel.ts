@@ -30,47 +30,17 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
               if (relatedModelRelation.isArray) {
                 return `
                 ${rf.name}: async (parent, args, { db }) => {
-                return await ${unCapitalize(model.name)}DataLoader(db).${rf.name}Loader.load(parent.id);
+                  ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()
+                return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.id);
                 }
                 `
-                // return `${rf.name}: async (parent, args, { db }) => {
-                //   return await db.${unCapitalize(
-                //     relatedModel.name
-                //   )}.findMany({
-                //     where: {
-                //       ${relatedModelRelation.name}: {
-                //         some: {
-                //           id: {
-                //             equals: parent.id,
-                //           },
-                //         },
-                //       },
-                //     },
-                //   });
-                // }`;
               } else {
                 //many to one
                 return `
                 ${rf.name}: async (parent, args, { db }) => {
-                return await ${unCapitalize(model.name)}DataLoader(db).${rf.name}Loader.load(parent.id);
+                ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()
+                return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.id);
                 }`
-                // return `${rf.name}: async (parent, args, { db }) => {
-                //   return await db.${unCapitalize(rf.type)}.findMany({
-                //   where: {
-                //       ${
-                //         relatedModel.fields.filter(
-                //           (f) => f.type === model.name
-                //         )[0].name
-                //       }: {
-                //         is: {
-                //           id: {
-                //             equals: parent.id,
-                //           },
-                //         },
-                //       },
-                //     },
-                //   })
-                // }`;
               }
             } else if (
               //one to many
@@ -85,42 +55,23 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
               if (rf.required) {
                 return `
                 ${rf.name}: async (parent, args, { db }) => {
-                return await ${unCapitalize(model.name)}DataLoader(db).${rf.name}Loader.load(parent.${relatedField});
+                ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()
+                return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.${relatedField});
                 }
                 `
-                // ${rf.name}: async (parent, args, { db }) => {
-                // return await db.${unCapitalize(rf.type)}.findUnique({
-                //     where: {
-                //     id: parent.${relatedField},
-                //     },
-                // });
-                // }
-                // `;
+               
               } else {
                 return `
                 ${rf.name}: async (parent, args, { db }) => {
                   if (parent.${relatedField}) {
-                    return await ${unCapitalize(model.name)}DataLoader(db).${rf.name}Loader.load(parent.${relatedField});
+                    ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()
+                    return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.${relatedField});
                   }
                   else{
                     return null;
                   }
                 }
                 `;
-                // return `
-                // ${rf.name}: async (parent, args, { db }) => {
-                //   if (parent.${relatedField}) {
-                //     return await db.${unCapitalize(rf.type)}.findUnique({
-                //         where: {
-                //         id: parent.${relatedField},
-                //         },
-                //     });
-                //   }
-                //   else{
-                //     return null;
-                //   }
-                // }
-                // `;
               }
             } else {
               //one to one
@@ -150,11 +101,13 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
                   ']'
                 );
                 return `${rf.name}: async (parent, args, { db }) => {
-                  return await ${unCapitalize(model.name)}DataLoader(db).${rf.name}Loader.load(parent.${relatedField});
+                  ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()
+                  return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.${relatedField});
                 }`;
               } else {
                 return `${rf.name}: async (parent, args, { db }) => {
-                  return await ${unCapitalize(model.name)}DataLoader(db).${rf.name}Loader.load(parent.id);
+                  ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()
+                  return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.id);
                 }`;
               }
             }

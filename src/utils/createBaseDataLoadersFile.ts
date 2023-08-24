@@ -6,11 +6,8 @@ import path from 'path';
 const createBaseDataLoadersFile = async (gqlModels: GQLModel[] | undefined) => {
   if (gqlModels) {
     const baseFile = `
-      ${gqlModels
-        .map((model) => {
-          return `import { ${
-            unCapitalize( model.name)
-          }DataLoader } from './${model.name.toLowerCase()}/dataLoaders';`;
+      ${gqlModels.map((model) => {
+          return `import { ${unCapitalize( model.name)}DataLoader } from './${model.name.toLowerCase()}/dataLoaders';`;
         })
         .join('\n')}
   
