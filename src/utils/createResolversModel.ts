@@ -15,6 +15,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
   const resolverFile = `
   import { Resolver } from '../../types';
   import { ${unCapitalize(model.name)}DataLoader } from './dataLoaders'
+  import { checkSession } from "../../auth/checkSession";
   
     const ${unCapitalize(model.name)}Resolvers: Resolver = {
     ${model.name}: {
@@ -29,48 +30,26 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
               )[0];
               if (relatedModelRelation.isArray) {
                 return `
-                ${rf.name}: async (parent, args, { db }) => {
-                return await ${unCapitalize(model.name)}DataLoader(db).${rf.name}Loader.load(parent.id);
+                ${rf.name}: async (parent, args, { db, session }) => {
+                  const check = await checkSession( {session,resolverName:"${rf.name}",resolverType:"Parent"})
+                  if (check?.auth) {
+                    ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()
+                    return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.id);
+                  }  
+                  return null;
                 }
                 `
-                // return `${rf.name}: async (parent, args, { db }) => {
-                //   return await db.${unCapitalize(
-                //     relatedModel.name
-                //   )}.findMany({
-                //     where: {
-                //       ${relatedModelRelation.name}: {
-                //         some: {
-                //           id: {
-                //             equals: parent.id,
-                //           },
-                //         },
-                //       },
-                //     },
-                //   });
-                // }`;
               } else {
                 //many to one
                 return `
-                ${rf.name}: async (parent, args, { db }) => {
-                return await ${unCapitalize(model.name)}DataLoader(db).${rf.name}Loader.load(parent.id);
+                ${rf.name}: async (parent, args, { db,session }) => {
+                const check = await checkSession( {session,resolverName:"${rf.name}",resolverType:"Parent"})
+                if (check?.auth) {
+                ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()
+                return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.id);
+                }  
+                return null;
                 }`
-                // return `${rf.name}: async (parent, args, { db }) => {
-                //   return await db.${unCapitalize(rf.type)}.findMany({
-                //   where: {
-                //       ${
-                //         relatedModel.fields.filter(
-                //           (f) => f.type === model.name
-                //         )[0].name
-                //       }: {
-                //         is: {
-                //           id: {
-                //             equals: parent.id,
-                //           },
-                //         },
-                //       },
-                //     },
-                //   })
-                // }`;
               }
             } else if (
               //one to many
@@ -84,43 +63,32 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
               );
               if (rf.required) {
                 return `
-                ${rf.name}: async (parent, args, { db }) => {
-                return await ${unCapitalize(model.name)}DataLoader(db).${rf.name}Loader.load(parent.${relatedField});
+                ${rf.name}: async (parent, args, { db, session }) => {
+                const check = await checkSession( {session,resolverName:"${rf.name}",resolverType:"Parent"})
+                if (check?.auth) {
+                ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()  
+                return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.${relatedField});
+                }  
+                return null;
                 }
                 `
-                // ${rf.name}: async (parent, args, { db }) => {
-                // return await db.${unCapitalize(rf.type)}.findUnique({
-                //     where: {
-                //     id: parent.${relatedField},
-                //     },
-                // });
-                // }
-                // `;
               } else {
                 return `
-                ${rf.name}: async (parent, args, { db }) => {
+                ${rf.name}: async (parent, args, { db,session }) => {
                   if (parent.${relatedField}) {
-                    return await ${unCapitalize(model.name)}DataLoader(db).${rf.name}Loader.load(parent.${relatedField});
+                    const check = await checkSession( {session,resolverName:"${rf.name}",resolverType:"Parent"})
+                    if (check?.auth) {
+                    ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()   
+                    return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.${relatedField});
+                    }
+                    return null;
                   }
                   else{
                     return null;
                   }
                 }
                 `;
-                // return `
-                // ${rf.name}: async (parent, args, { db }) => {
-                //   if (parent.${relatedField}) {
-                //     return await db.${unCapitalize(rf.type)}.findUnique({
-                //         where: {
-                //         id: parent.${relatedField},
-                //         },
-                //     });
-                //   }
-                //   else{
-                //     return null;
-                //   }
-                // }
-                // `;
+               
               }
             } else {
               //one to one
@@ -149,12 +117,22 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
                   'fields:[',
                   ']'
                 );
-                return `${rf.name}: async (parent, args, { db }) => {
-                  return await ${unCapitalize(model.name)}DataLoader(db).${rf.name}Loader.load(parent.${relatedField});
+                return `${rf.name}: async (parent, args, { db, session }) => {
+                  const check = await checkSession( {session,resolverName:"${rf.name}",resolverType:"Parent"})
+                  if (check?.auth) {
+                  ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()   
+                  return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.${relatedField});
+                  }
+                  return null
                 }`;
               } else {
-                return `${rf.name}: async (parent, args, { db }) => {
-                  return await ${unCapitalize(model.name)}DataLoader(db).${rf.name}Loader.load(parent.id);
+                return `${rf.name}: async (parent, args, { db,session }) => {
+                  const check = await checkSession( {session,resolverName:"${rf.name}",resolverType:"Parent"})
+                  if (check?.auth) {
+                  ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()  
+                  return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.id);
+                  }
+                  return null
                 }`;
               }
             }
@@ -162,19 +140,29 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
           .join(',')}
     },
     Query: {
-        ${unCapitalize(model.name)}s: async (parent, args, { db }) => {
-        return await db.${unCapitalize(model.name)}.findMany({});
+        ${unCapitalize(model.name)}s: async (parent, args, { db,session }) => {
+        const check = await checkSession( {session,resolverName:"${unCapitalize(model.name)}s",resolverType:"Query"})
+        if (check?.auth) {
+         return await db.${unCapitalize(model.name)}.findMany({});
+        }
+        return Error(check?.error);
         },
-        ${unCapitalize(model.name)}: async (parent, args, { db }) => {
-        return await db.${unCapitalize(model.name)}.findUnique({
-            where: {
-            id: args.id,
-            },
-        });
+        ${unCapitalize(model.name)}: async (parent, args, { db, session }) => {
+        const check = await checkSession( {session,resolverName:"${unCapitalize(model.name)}",resolverType:"Query"})
+        if (check?.auth) {
+          return await db.${unCapitalize(model.name)}.findUnique({
+              where: {
+              id: args.id,
+              },
+          });
+        }
+        return Error(check?.error);
         },
     },
     Mutation:{
-      create${model.name}:async (parent, args, { db })=>{
+      create${model.name}:async (parent, args, { db,session })=>{
+        const check = await checkSession( {session,resolverName:"create${model.name}",resolverType:"Mutation"})
+        if (check?.auth) {
         return await db.${unCapitalize(model.name)}.create({
           data:{...args.data, ${model.fields
             .filter(
@@ -188,27 +176,36 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
             )
             .join(',')} }
         })
+      }
+      return Error(check?.error);
+
       },
-      update${model.name}:async (parent, args, { db })=>{
-        return await db.${unCapitalize(model.name)}.update({
-          where:{
-            id:args.where.id
-          },
-          data:{...args.data, ${model.fields
-            .filter(
-              (rf) =>
-                rf.type === 'DateTime' &&
-                rf.name !== 'createdAt' &&
-                rf.name !== 'updatedAt'
-            )
-            .map(
-              (el) =>
-                `...(args.data.${el.name} && {${el.name}: new Date(args.data.${el.name}).toISOString()})`
-            )
-            .join(',')}}
-        })
+      update${model.name}:async (parent, args, { db, session })=>{
+        const check = await checkSession( {session,resolverName:"update${model.name}",resolverType:"Mutation"})
+        if (check?.auth) {
+          return await db.${unCapitalize(model.name)}.update({
+            where:{
+              id:args.where.id
+            },
+            data:{...args.data, ${model.fields
+              .filter(
+                (rf) =>
+                  rf.type === 'DateTime' &&
+                  rf.name !== 'createdAt' &&
+                  rf.name !== 'updatedAt'
+              )
+              .map(
+                (el) =>
+                  `...(args.data.${el.name} && {${el.name}: new Date(args.data.${el.name}).toISOString()})`
+              )
+              .join(',')}}
+          })
+        }
+        return Error(check?.error);  
       },
-      upsert${model.name}:async (parent, args, { db })=>{
+      upsert${model.name}:async (parent, args, { db,session })=>{
+        const check = await checkSession( {session,resolverName:"upsert${model.name}",resolverType:"Mutation"})
+        if (check?.auth) {
         return await db.${unCapitalize(model.name)}.upsert({
           where:{
             id:args.where.id
@@ -239,14 +236,21 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
               .join(',')}
           }    
         })
+      }
+      return Error(check?.error); 
       },
     
-      delete${model.name}:async (parent, args, { db })=>{
-        return await db.${unCapitalize(model.name)}.delete({
-          where:{
-            id:args.where.id
-          }
-        })
+      delete${model.name}:async (parent, args, { db, session })=>{
+        const check = await checkSession( {session,resolverName:"delete${model.name}",resolverType:"Mutation"})
+        if (check?.auth) {
+          return await db.${unCapitalize(model.name)}.delete({
+            where:{
+              id:args.where.id
+            }
+          })
+        }
+        return Error(check?.error);
+
       },
     }
     }

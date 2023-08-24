@@ -10,6 +10,7 @@ import { createBaseResolversFile } from './utils/createBaseResolversFile';
 import { createResolvers } from './utils/createResolversModel';
 import { createDirectory } from './utils/createDirectory';
 import {createDataLoaders} from './utils/createDataLoadersModel'
+import { createSessionConfig } from './utils/createSessionConfig';
 import rimraf from 'rimraf';
 
 // import { generateTypeObject } from './utils/generateTypeObject';
@@ -30,6 +31,7 @@ const cosmo = async () => {
   createDirectory('./prisma/generated');
   createDirectory('./prisma/generated/aws');
   createDirectory('./prisma/generated/aws/graphql');
+  createDirectory('./prisma/generated/aws/sessionConfig');
   createDirectory('./prisma/generated/aws/models');
 
 
@@ -47,7 +49,9 @@ const cosmo = async () => {
     return generateSchemaObject(model);
   });
   await createBaseSchemasFile(gqlSchemas, enums);
- 
+
+
+ await createSessionConfig(gqlSchemas,parsedModels);
   //create files resolvers for every model
   gqlSchemas?.map(async (gqlSchemas) => {
     await createResolversFiles(gqlSchemas);
