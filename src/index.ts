@@ -7,7 +7,6 @@ import clear from 'clear';
 import * as figlet from 'figlet';
 
 // Console Welcome
-
 clear();
 console.log(
   chalk.bold.blueBright(figlet.textSync('Cosmo', { horizontalLayout: 'full' }))

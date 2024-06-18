@@ -18,9 +18,8 @@
   },
   "scripts": {
     "create": "npm run build && npm run test",
-    "prettier-format": "prettier --config .prettierrc ./prisma/generated/aws/graphql/*.graphql --write",
-    "start": "ts-node src/index.ts && prettier --config .prettierrc ./prisma/generated/aws/**/*.ts --write",
-    "aws_cosmo": "yarn start && yarn prettier-format",
+    "start": "ts-node src/index.ts && prettier --config .prettierrc ./prisma/generated/**/*.ts --write",
+    "cosmo": "bun run start && bun run prettier-format",
     "build": "rimraf lib && tsc -p . --newLine lf"
   },
   "devDependencies": {
