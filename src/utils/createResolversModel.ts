@@ -150,15 +150,6 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
             data:{...args.data}
           })
       },
-      upsert${model.name}:async (parent, args, { db,session })=>{
-        return await db.${unCapitalize(model.name)}.upsert({
-          where:{
-            id:args.where.id
-          },
-          create:{...args.data },
-          update: {...args.data }    
-        })
-      },
       delete${model.name}:async (parent, args, { db, session })=>{
           return await db.${unCapitalize(model.name)}.delete({
             where:{
