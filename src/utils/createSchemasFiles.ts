@@ -14,7 +14,6 @@ const createSchemasFiles = async (
       `${model.model}`
     );
   });
-  console.log(enums);
 
   const baseEnumsFile = `  
     import gql from 'graphql-tag';
