@@ -4,11 +4,37 @@ import { writeFile } from './writeFile';
 import path from 'path';
 
 function betweenMarkers(text: string, begin: string, end: string) {
-  var firstChar = text.indexOf(begin) + begin.length;
-  var lastChar = text.indexOf(end);
-  var newText = text.substring(firstChar, lastChar);
-  return newText;
+  if (text) {
+    var firstChar = text.indexOf(begin) + begin.length;
+    var lastChar = text.indexOf(end);
+    var newText = text.substring(firstChar, lastChar);
+    return newText;
+  }
 }
+
+// Extraer el nombre de la relación del atributo
+const getRelationName = (attribute: string): string => {
+  const regex = /@relation\(name?:"(.*?)"/;
+  const match = attribute.match(regex);
+  return match ? match[1] : '';
+};
+
+// Obtener el campo de relación a partir de los atributos
+const getRelationField = (
+  attributes: string[],
+  relationName: string
+): string => {
+  const regex = new RegExp(
+    `@relation\\("${relationName}".*?fields:\\[(.*?)\\]`
+  );
+  for (const attr of attributes) {
+    const match = attr.match(regex);
+    if (match) {
+      return match[1];
+    }
+  }
+  return '';
+};
 
 const createDataLoaders = async (model: GQLModel, parsedModels: GQLModel[]) => {
   const relatedFields = model.fields.filter((f) => f.isRelatedModel);
@@ -22,25 +48,28 @@ const createDataLoaders = async (model: GQLModel, parsedModels: GQLModel[]) => {
       )}} from '@prisma/client'
     import { getDB } from '@/db';
 
-    ${relatedFields.map((rf) => {
-      if (rf.isArray) {
-        const relatedModel = parsedModels.filter(
-          (pm) => pm.name === rf.type
-        )[0];
-        const relatedModelRelation = relatedModel.fields.filter(
-          (fld) => fld.type === model.name
-        )[0];
+    ${relatedFields
+      .map((rf) => {
+        if (rf.isArray) {
+          const relatedModel = parsedModels.filter(
+            (pm) => pm.name === rf.type
+          )[0];
+          const relatedModelRelation = relatedModel.fields.filter(
+            (fld) => fld.type === model.name
+          )[0];
 
-        if (relatedModelRelation.isArray) {
-          return `
+          if (relatedModelRelation.isArray) {
+            // many to many
+            return `
           // Loader para la relación muchos a muchos
           const ${rf.name}Loader = () =>
-          async (ids: readonly string[]): Promise<(${rf.type.charAt(0).toUpperCase() + rf.type.slice(1)
+          async (ids: readonly string[]): Promise<(${
+            rf.type.charAt(0).toUpperCase() + rf.type.slice(1)
           } | undefined)[]> => {
-            const db = await getDB()     
+            const db = await getDB()
             const ${rf.name}= await db.${unCapitalize(
-            relatedModel.name
-          )}.findMany({
+              relatedModel.name
+            )}.findMany({
                     where: {
                       ${relatedModelRelation.name}: {
                         some: {
@@ -59,8 +88,9 @@ const createDataLoaders = async (model: GQLModel, parsedModels: GQLModel[]) => {
                   return ids.map((id) => {
                     const list: any = []
                     ${rf.name}.find((${rf.name}) => {
-                        return ${rf.name}.${relatedModelRelation.name
-          }.some((i) => {
+                        return ${rf.name}.${
+              relatedModelRelation.name
+            }.some((i) => {
                                 if (i.id === id) {list.push(${rf.name})}
                             });
                         });
@@ -68,92 +98,112 @@ const createDataLoaders = async (model: GQLModel, parsedModels: GQLModel[]) => {
                       })
                     }
           `;
-        } else {
-          const attribute = relatedModel.fields.filter(
-            (f) => f.type === model.name)[0].attributes[0];
-          const regex = /fields:\[(.*?)\]/;
-          const match = regex.exec(attribute);
-          let field;
-          if (match) {
-            field = match[1];
-          }
-          listTypes.push(
-            rf.type.charAt(0).toUpperCase() + rf.type.slice(1)
-          );
-          return `
-              const ${rf.name}Loader = () =>async (ids: readonly string[]): Promise<(${rf.type.charAt(0).toUpperCase() + rf.type.slice(1)}[] | undefined)[]> => {
-                const db = await getDB()      
+          } else {
+            // one to many
+            const attribute = relatedModel.fields
+              .filter((f) => f.type === model.name)
+              .map((f) => f.attributes[0]);
+            const fields = attribute.map((attr) => {
+              const regex = /fields:\[(.*?)\]/;
+              const match = regex.exec(attr);
+              return match && match[1];
+            });
+            listTypes.push(rf.type.charAt(0).toUpperCase() + rf.type.slice(1));
+
+            const field = getRelationField(
+              attribute,
+              getRelationName(rf.attributes[0] ?? '')
+            );
+
+            const relatedFieldName =
+              relatedModel?.fields.find((f) =>
+                f.attributes.some((attr) => attr.includes(field))
+              )?.name || '';
+
+            return `
+              // Loader para la relación uno a muchos
+              const ${
+                rf.name
+              }Loader = () => async (ids: readonly string[]): Promise<(${
+              rf.type.charAt(0).toUpperCase() + rf.type.slice(1)
+            }[] | undefined)[]> => {
+                const db = await getDB()
                 const ${rf.name}= await db.${unCapitalize(rf.type)}.findMany({
                           where: {
-                              ${relatedModel.fields.filter( (f) => f.type === model.name)[0].name}:
-                              {
-                is: {
-                      id: { in: [...ids] }
-                    },
-                  },
-                },
-              })
-              return ids.map((id)=>{
-                return ${rf.name}.filter(i=>i.${field}==id) 
-              })
-          }`;
-        }
-      } else if (
-        //one to many
-        rf.attributes.length > 0 &&
-        rf.attributes[0].includes('fields')
-      ) {
-        const relatedField = betweenMarkers(
-          rf.attributes[0],
-          'fields:[',
-          ']'
-        );
-        return `
-          const ${rf.name
-          }Loader = () => async (ids: readonly string[]): Promise<(${rf.type.charAt(0).toUpperCase() + rf.type.slice(1)
+                              ${relatedFieldName}: {
+                                is: {
+                                  id: { in: [...ids] },
+                                },
+                              },
+                          },
+                      })
+                      return ids.map((id)=>{
+                        return ${rf.name}.filter(i => i.${
+              field ? field : fields[0]
+            } == id)
+                      })
+              }`;
+          }
+        } else if (
+          // many to one
+          rf.attributes.length > 0 &&
+          rf.attributes[0].includes('fields')
+        ) {
+          const relatedField = betweenMarkers(
+            rf.attributes[0],
+            'fields:[',
+            ']'
+          );
+          return `
+        // Loader para la relación muchos a uno
+          const ${
+            rf.name
+          }Loader = () => async (ids: readonly string[]): Promise<(${
+            rf.type.charAt(0).toUpperCase() + rf.type.slice(1)
           } | undefined)[]> => {
-            const db = await getDB()      
+            const db = await getDB()
             const ${rf.name}=  await db.${unCapitalize(rf.type)}.findMany({
                         where: {
                           id: { in: [...ids] },
                         },
                     });
                     return ids.map((id) => {
-                      return ${rf.name}.find(${rf.name} => ${rf.name
-          }.id == id)      
+                      return ${rf.name}.find(${rf.name} => ${rf.name}.id == id)
                     })
                   }
             `;
-      } else {
-        //one to one
-        if (rf.attributes.length > 0) {
-          const relationName = rf.attributes
-            .filter((a) => a.includes('@relation'))[0]
-            .split('"')[1];
-
-          const relatedField = model.fields.filter(
-            (f) =>
-              f.attributes.filter((a) => a.includes(relationName)).length >
-              0
-          )[0];
-          const relatedModel = parsedModels.filter(
-            (pm) => pm.name === relatedField.type
-          )[0];
-          const relatedModelRelation = relatedModel.fields.filter(
-            (fld) => fld.type === model.name
-          )[0];
-
-          const relationFieldName = betweenMarkers(
-            relatedModelRelation.attributes
+        } else {
+          // one to one
+          if (rf.attributes.length > 0) {
+            const relationName = rf.attributes
               .filter((a) => a.includes('@relation'))[0]
-              .split(',')
-              .filter((a) => a.includes('fields'))[0],
-            'fields:[',
-            ']'
-          );
-          return `
-          const ${rf.name
-            }Loader = () => async (ids: readonly string[]): Promise<(${rf.type.charAt(0).toUpperCase() + rf.type.slice(1)
+              .split('"')[1];
+
+            const relatedField = model.fields.filter(
+              (f) =>
+                f.attributes.filter((a) => a.includes(relationName)).length > 0
+            )[0];
+            const relatedModel = parsedModels.filter(
+              (pm) => pm.name === relatedField.type
+            )[0];
+            const relatedModelRelation = relatedModel.fields.filter(
+              (fld) => fld.type === model.name
+            )[0];
+
+            const relationFieldName = betweenMarkers(
+              relatedModelRelation.attributes
+                .filter((a) => a.includes('@relation'))[0]
+                .split(',')
+                .filter((a) => a.includes('fields'))[0],
+              'fields:[',
+              ']'
+            );
+            return `
+          // Loader para la relación uno a uno
+          const ${
+            rf.name
+          }Loader = () => async (ids: readonly string[]): Promise<(${
+              rf.type.charAt(0).toUpperCase() + rf.type.slice(1)
             } | undefined)[]> => {
             const db = await getDB()
             const ${rf.name}=await db.${unCapitalize(rf.type)}.findMany({
@@ -162,12 +212,15 @@ const createDataLoaders = async (model: GQLModel, parsedModels: GQLModel[]) => {
                     }
                   })
                   return ids.map((id) => {
-                    return ${rf.name}.find(${rf.name} => ${rf.name}.id == id)      
+                    return ${rf.name}.find(${rf.name} => ${rf.name}.id == id)
                   })
                 }`;
-        } else {
-          return `
-          const ${rf.name}Loader = () => async (ids: readonly string[]): Promise<(${rf.type.charAt(0).toUpperCase() + rf.type.slice(1)
+          } else {
+            return `
+          const ${
+            rf.name
+          }Loader = () => async (ids: readonly string[]): Promise<(${
+              rf.type.charAt(0).toUpperCase() + rf.type.slice(1)
             } | undefined)[]> => {
             const db = await getDB()
             const ${rf.name}= await db.${unCapitalize(rf.type)}.findMany({
@@ -176,23 +229,25 @@ const createDataLoaders = async (model: GQLModel, parsedModels: GQLModel[]) => {
                     }
                   })
                   return ids.map((id) => {
-                    return ${rf.name}.find(${rf.name} => ${rf.name}.${unCapitalize(model.name)}Id == id)      
+                    return ${rf.name}.find(${rf.name} => ${
+              rf.name
+            }.${unCapitalize(model.name)}Id == id)
                   })
           }`;
+          }
         }
-      }
-    })
-    .join('')}
+      })
+      .join('')}
 
     const ${unCapitalize(model.name)}DataLoader =  {
       ${relatedFields.map((i) => {
-          let typeName = i.type.charAt(0).toUpperCase() + i.type.slice(1);
-          const verifyTypo = listTypes.find((i) => i == typeName);
-          verifyTypo == typeName ? (typeName = typeName + '[]') : typeName;
-          return `
+        let typeName = i.type.charAt(0).toUpperCase() + i.type.slice(1);
+        const verifyTypo = listTypes.find((i) => i == typeName);
+        verifyTypo == typeName ? (typeName = typeName + '[]') : typeName;
+        return `
         ${i.name}Loader: new DataLoader <string,${typeName} | undefined>(${i.name}Loader())`;
-        })}
-      };    
+      })}
+      };
       export { ${unCapitalize(model.name)}DataLoader };
   `;
 
