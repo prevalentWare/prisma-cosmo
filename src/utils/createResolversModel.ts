@@ -13,7 +13,13 @@ function betweenMarkers(text: string, begin: string, end: string) {
 const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
   const relatedFields = model.fields.filter((f) => f.isRelatedModel);
   const resolverFile = `
+    import { ${relatedFields
+      .map((i) => i.type.charAt(0).toUpperCase() + i.type.slice(1))
+      .filter(
+        (value: any, index: any, array: any) => array.indexOf(value) === index
+      )}} from '@prisma/client'
     import { Resolver } from '@/types';
+    import { ${unCapitalize(model.name)}CreateInput, ${unCapitalize(model.name)}UpdateInput, ${unCapitalize(model.name)}WhereUniqueInput } from '../../types.ts'
     import { ${unCapitalize(model.name)}DataLoader } from './dataLoaders'
     ${model.name != 'User'?'':`import { sendUserDataToAuth0 } from '@/utils/createUserInAuth0';`}
  
@@ -30,7 +36,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
           )[0];
           if (relatedModelRelation.isArray) {
             return `
-                ${rf.name}: async (parent, args, { db, session }) => {
+                ${rf.name}: async (parent: ${rf.type}, _: null, { db, session }) => {
                     ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()
                     return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.id);
                 }
@@ -38,7 +44,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
           } else {
             //many to one
             return `
-                ${rf.name}: async (parent, args, { db,session }) => {
+                ${rf.name}: async (parent: ${rf.type}, _: null, { db,session }) => {
                   ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()
                   return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.id);
                 }`
@@ -55,14 +61,14 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
           );
           if (rf.required) {
             return `
-                ${rf.name}: async (parent, args, { db, session }) => {
+                ${rf.name}: async (parent: ${rf.type}, _: null, { db, session }) => {
                 ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()  
                 return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.${relatedField});
                 }
                 `
           } else {
             return `
-                ${rf.name}: async (parent, args, { db,session }) => {
+                ${rf.name}: async (parent: ${rf.type}, _: null, { db,session }) => {
                   if (parent.${relatedField}) {
                     ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()   
                     return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.${relatedField});
@@ -101,12 +107,12 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
               'fields:[',
               ']'
             );
-            return `${rf.name}: async (parent, args, { db, session }) => {
+            return `${rf.name}: async (parent: ${rf.type}, _: null, { db, session }) => {
                   ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()   
                   return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.${relatedField});
                 }`;
           } else {
-            return `${rf.name}: async (parent, args, { db,session }) => {
+            return `${rf.name}: async (parent: ${rf.type}, _: null, { db,session }) => {
                     ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()  
                     return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.id);
                     }`;
@@ -116,10 +122,10 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
       .join(',')}
     },
     Query: {
-        ${unCapitalize(model.name)}s: async (parent, args, { db,session }) => {
+        ${unCapitalize(model.name)}s: async (_: null, __: null, { db,session }) => {
          return await db.${unCapitalize(model.name)}.findMany({});
         },
-        ${unCapitalize(model.name)}: async (parent, args, { db, session }) => {
+        ${unCapitalize(model.name)}: async (_: null, args: ${unCapitalize(model.name)}WhereUniqueInput, { db, session }) => {
           return await db.${unCapitalize(model.name)}.findUnique({
               where: {
               id: args.id,
@@ -129,20 +135,18 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
     },
     Mutation:{
       ${model.name != 'User' ? `
-        create${model.name}:async (parent, args, { db,session })=>{
+        create${model.name}:async (_: null, args: ${unCapitalize(model.name)}CreateInput, { db,session })=>{
           return await db.${unCapitalize(model.name)}.create({
             data:{...args.data}
           })
-        },
-      `
+        },`
       :
-      ` 
-        create${model.name}:async (parent, args, { db,session })=>{
-          return await createUserInAuth0(args, db)
-        },
       `
+        create${model.name}:async (_: null, args: ${unCapitalize(model.name)}CreateInput, { db,session })=>{
+          return await createUserInAuth0(args, db)
+        },`
     }
-      update${model.name}:async (parent, args, { db, session })=>{
+      update${model.name}:async (_: null, args: ${unCapitalize(model.name)}UpdateInput, { db, session })=>{
           return await db.${unCapitalize(model.name)}.update({
             where:{
               id:args.where.id
@@ -150,7 +154,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
             data:{...args.data}
           })
       },
-      delete${model.name}:async (parent, args, { db, session })=>{
+      delete${model.name}:async (_: null, args: ${unCapitalize(model.name)}WhereUniqueInput, { db, session })=>{
           return await db.${unCapitalize(model.name)}.delete({
             where:{
               id:args.where.id
