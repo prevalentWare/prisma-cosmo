@@ -14,9 +14,9 @@ function betweenMarkers(text: string, begin: string, end: string) {
 
 // Extraer el nombre de la relación del atributo
 const getRelationName = (attribute: string): string => {
-  const regex = /@relation\(name?:"(.*?)"/;
+  const regex = /@relation\((name:)?\s?"(.*?)"\)/;
   const match = attribute.match(regex);
-  return match ? match[1] : '';
+  return match ? match[2] : '';
 };
 
 // Obtener el campo de relación a partir de los atributos
@@ -116,8 +116,9 @@ const createDataLoaders = async (model: GQLModel, parsedModels: GQLModel[]) => {
             );
 
             const relatedFieldName =
-              relatedModel?.fields.find((f) =>
-                f.attributes.some((attr) => attr.includes(field))
+              relatedModel?.fields.find(
+                (f) =>
+                  field && f.attributes.some((attr) => attr.includes(field))
               )?.name || '';
 
             return `
@@ -130,7 +131,13 @@ const createDataLoaders = async (model: GQLModel, parsedModels: GQLModel[]) => {
                 const db = await getDB()
                 const ${rf.name}= await db.${unCapitalize(rf.type)}.findMany({
                           where: {
-                              ${relatedFieldName}: {
+                              ${
+                                relatedFieldName
+                                  ? relatedFieldName
+                                  : relatedModel.fields.filter(
+                                      (f) => f.type === model.name
+                                    )[0].name
+                              }: {
                                 is: {
                                   id: { in: [...ids] },
                                 },
