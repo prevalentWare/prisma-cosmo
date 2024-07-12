@@ -20,10 +20,11 @@ const createBaseResolversFile = async (gqlModels: GQLModel[] | undefined) => {
       .map((model) => `import { ${unCapitalize(model.name)}Types } from './${model.name.toLowerCase()}/types';`)
       .join('\n');
 
-    // Array de resolvers
-    const resolverArray = gqlModels
-      .map((model) => `${unCapitalize(model.name)}Resolvers`)
-      .join(', ');
+    const resolverArray = [
+      ...gqlModels
+      .map((model) => `${unCapitalize(model.name)}Resolvers`),
+      'generalResolvers',
+    ].join(',');
 
     // Array de tipos
     const typesArray = gqlModels
@@ -35,6 +36,7 @@ const createBaseResolversFile = async (gqlModels: GQLModel[] | undefined) => {
       import { Enum_ResolverType, Resolver } from '@/types';
 
       // Importaciones de los resolvers
+      import { generalResolvers } from './general/resolvers';
       ${resolversImport}
 
       // Importaciones de los tipos

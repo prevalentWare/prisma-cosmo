@@ -41,8 +41,10 @@ const createSessionConfig = async (gqlModels: any, parsedModels: any) => {
       ${gqlModels?.map((model: any) => `
       // ${model.name}
       { name: '${unCapitalize(model.name)}s', roles: ['Admin'], isPublic: false },
-      { name: '${unCapitalize(model.name)}', roles: ['Admin'], isPublic: false }
-      `)}
+      { name: '${unCapitalize(model.name)}', roles: ['Admin'], isPublic: false }`)},
+       //General
+      { name: 'getMultipleSignedUrlsForUpload', roles: ['Admin'], isPublic: false },
+      { name: 'getSignedUrlForUpload', roles: ['Admin'], isPublic: false }
     ]
   }`;
 
