@@ -38,6 +38,7 @@ const cosmo = async () => {
 
   // create file for enums
   const enums = file.match(/enum([^}]+)}/g);
+  const parsedEnums = Array.from(file.matchAll(/enum\s+([A-Za-z_][A-Za-z0-9_]*)/g)).map(match => match[1]);
 
   // create file containing the types for every model
   const gqlSchemas = await parsedModels?.map((model) => {
@@ -58,7 +59,7 @@ const cosmo = async () => {
 
   await createSessionConfig(gqlSchemas, parsedModels);
 
-  await createTypeObject(parsedModels);
+  await createTypeObject(parsedModels, parsedEnums);
 
   // create resolvers
   parsedModels?.map(async (model) => {

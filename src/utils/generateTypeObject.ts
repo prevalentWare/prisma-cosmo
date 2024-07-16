@@ -55,15 +55,20 @@ const getModelUpdateInputFields = (fields: PrismaField[]) => fields.filter(field
     .replace(/(JSON|Json)/, 'Object<any>')}`).join('');
 
 // Función principal para crear la configuración de la sesión
-const createTypeObject = async (parsedModels: GQLModel[] | undefined) => {
+const createTypeObject = async (parsedModels: GQLModel[] | undefined, enums: string[] | null) => {
+  // Construimos la línea de importación para los enums
+  const enumsString = enums ? enums.map((e) => e.replace('enum ', '')).join(', ') : '';
+
   // Creamos el archivo base
   const baseFile = `
+  ${enumsString ? `import { ${enumsString} } from '@prisma/client';` : ''}
   ${parsedModels?.map(model => {
     const uniqueFields = model.fields.filter(field => field.isId || field.isUnique);
     const uniqueFieldsString = getModelUniqueFields(uniqueFields);
     const fieldsString = getModelFields(model.fields);
     const createInputFieldsString = getModelCreateInputFields(model.fields);
     const updateInputFieldsString = getModelUpdateInputFields(model.fields);
+
 
     return `
       export type ${model.name} = {
