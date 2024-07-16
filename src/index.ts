@@ -8,19 +8,19 @@ import * as figlet from 'figlet';
 
 // Console Welcome
 clear();
-console.log(
-  chalk.bold.blueBright(figlet.textSync('Cosmo', { horizontalLayout: 'full' }))
-);
+// console.log(
+//   chalk.bold.blueBright(figlet.textSync('Cosmo', { horizontalLayout: 'full' }))
+// );
 
-console.log(
-  chalk.bold.blueBright(figlet.textSync('by', { horizontalLayout: 'fitted' }))
-);
+// console.log(
+//   chalk.bold.blueBright(figlet.textSync('by', { horizontalLayout: 'fitted' }))
+// );
 
-console.log(
-  chalk.bold.blueBright(
-    figlet.textSync('prevalentWare', { horizontalLayout: 'fitted' })
-  )
-);
+// console.log(
+//   chalk.bold.blueBright(
+//     figlet.textSync('prevalentWare', { horizontalLayout: 'fitted' })
+//   )
+// );
 
 const program = new Command();
 program
@@ -31,8 +31,6 @@ const main = async () => {
   await cosmo();
 
   console.log('finished file output');
-
 };
-
 
 main();

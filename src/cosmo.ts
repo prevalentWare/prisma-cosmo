@@ -8,60 +8,61 @@ import { createModelsFiles } from './utils/createModelsFiles';
 import { createBaseResolversFile } from './utils/createBaseResolversFile';
 import { createResolvers } from './utils/createResolversModel';
 import { createDirectory } from './utils/createDirectory';
-import { createDataLoaders } from './utils/createDataLoadersModel'
+import { createDataLoaders } from './utils/createDataLoadersModel';
 import { createSessionConfig } from './utils/createSessionConfig';
 import rimraf from 'rimraf';
+import { createPlurals } from './utils/createPlurals';
 
-const readFile = promisify(fs.readFile);
-const rmrf = promisify(rimraf);
+// const readFile = promisify(fs.readFile);
+// const rmrf = promisify(rimraf);
 
 const cosmo = async () => {
-  // read models from prisma file
-  const file = await readFile(
-    path.join(process.cwd(), 'prisma/schema.prisma'),
-    { encoding: 'utf-8', }
-  );
+  createPlurals();
 
-  await rmrf('./prisma/generated');
-  createDirectory('./prisma/generated');
-  createDirectory('./prisma/generated/sessionConfig');
-  createDirectory('./prisma/generated/models');
+  // // read models from prisma file
+  // const file = await readFile(
+  //   path.join(process.cwd(), 'prisma/schema.prisma'),
+  //   { encoding: 'utf-8' }
+  // );
 
-  // parse models to object
-  const models = file.match(/model([^}]+)}/g);
-  const parsedModels = models
-    ?.filter((el) => !el.includes('cosmo-ignore'))
-    .map((m: string) => {
-      return parseModel(m);
-    });
+  // await rmrf('./prisma/generated');
+  // createDirectory('./prisma/generated');
+  // createDirectory('./prisma/generated/sessionConfig');
+  // createDirectory('./prisma/generated/models');
 
-  // create file for enums
-  const enums = file.match(/enum([^}]+)}/g);
+  // // parse models to object
+  // const models = file.match(/model([^}]+)}/g);
+  // const parsedModels = models
+  //   ?.filter((el) => !el.includes('cosmo-ignore'))
+  //   .map((m: string) => {
+  //     return parseModel(m);
+  //   });
 
-  // create file containing the types for every model
-  const gqlSchemas = await parsedModels?.map((model) => {
-    return generateSchemaObject(model);
-  });
+  // // create file for enums
+  // const enums = file.match(/enum([^}]+)}/g);
 
-  // create files resolvers for every model
-  await createModelsFiles(gqlSchemas)
+  // // create file containing the types for every model
+  // const gqlSchemas = await parsedModels?.map((model) => {
+  //   return generateSchemaObject(model);
+  // });
 
-  await createSchemasFiles(gqlSchemas, enums);
+  // // create files resolvers for every model
+  // await createModelsFiles(gqlSchemas);
 
-  await createSessionConfig(gqlSchemas, parsedModels);
+  // await createSchemasFiles(gqlSchemas, enums);
 
-  // create resolvers
-  parsedModels?.map(async (model) => {
-    await createResolvers(model, parsedModels);
-  });
-  parsedModels?.map(async (model) => {
-    await createDataLoaders(model, parsedModels);
-  });
+  // await createSessionConfig(gqlSchemas, parsedModels);
 
-  //create resolver file
-  await createBaseResolversFile(parsedModels);
+  // // create resolvers
+  // parsedModels?.map(async (model) => {
+  //   await createResolvers(model, parsedModels);
+  // });
+  // parsedModels?.map(async (model) => {
+  //   await createDataLoaders(model, parsedModels);
+  // });
 
+  // //create resolver file
+  // await createBaseResolversFile(parsedModels);
 };
 
 export { cosmo };
-
