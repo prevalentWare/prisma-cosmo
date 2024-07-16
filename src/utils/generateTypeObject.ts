@@ -1,98 +1,107 @@
 // Importaciones necesarias
-import { GQLModel } from '../types';
 import { unCapitalize } from './capitalize';
+import path from 'path';
+import { writeFile } from './writeFile';
 
-// Función para generar el esquema del objeto
-const generateTypeObject = (model: GQLModel) => {
-  // Lista para almacenar los nombres de los campos
-  const listNames: string[] = [];
+// Función para crear la configuración de la sesión
+const createTypeObject = async (gqlModels: any, parsedModels: any) => {
+  const list: any = [];
 
-  // Mapeo de los campos del modelo
-  const gqlFields = model.fields.map((field) => {
-    // Busca si el atributo tiene un valor por defecto
-    const found = field.attributes.find(element => {
-      if (element.includes("@default")) { return element }
-    });
-
-    // Si el campo tiene un valor por defecto y no es 'id' ni 'createdAt', se añade a la lista
-    if (found && field.name != 'id' && field.name != 'createdAt') {
-      listNames.push(field.name);
-    }
-
-    // Reemplaza los tipos de datos por su equivalente en GraphQL
-    field.gqlType = field.gqlType.replace("DateTime", "DateTime");
-    field.gqlType = field.gqlType.replace("Json", "JSON");
-
-    // Devuelve el campo con su tipo de dato
-    return `${field.name}: ${field.gqlType}`;
+  // Recorremos los modelos parseados
+  parsedModels.flatMap((model: any) => {
+    const relatedFields = model.fields
+      .filter((f: any) => {
+        if (f.isRelatedModel) return f.name;
+      })
+      .flatMap((i: any) => {
+        list.push(i.name);
+        return i.name;
+      });
   });
 
-  // Filtra y mapea los campos que se pueden actualizar
-  const gqlUpdateFields = model.fields
-    .filter(
-      (f) =>
-        ([
-          'String',
-          'Float',
-          'Int',
-          'Boolean',
-          'DateTime',
-          'JSON',
-          'Decimal',
-        ].includes(f.gqlType.replace('!', '')) ||
-          f.gqlType.replace('!', '').toLowerCase().includes('enum')) &&
-        f.name !== 'createdAt' &&
-        f.name !== 'updatedAt'
-    )
-    .map((field) => {
-      const fld = field.gqlType.replace(/(Float|Int|Decimal)/, 'number').replace(/String/, 'string').replace(/DateTime/, 'Date').replace(/Boolean/, 'boolean').replace(/JSON/, 'Object<any>');
-      return `${field.name}: ${fld}${fld !== 'Json' ? '' : ''}`;
-    });
+  // Filtramos los elementos únicos
+  const unique = list.filter(
+    (value: any, index: any, array: any) => array.indexOf(value) === index
+  );
 
-  // Genera el modelo GraphQL
-  const gqlModel = `
+  // Creamos el archivo base
+  const baseFile = `
+  ${parsedModels?.map(
+    (model: any) => `
     export type ${model.name} = {
-      ${gqlFields}
+      ${model.fields.map(
+        (field: any) => `
+      ${field.name}${!field.required ? '?' : ''}: ${field.type.replace(
+          'String',
+          'string'
+        ).replace('DateTime', 'Date').replace(/(Int|Float|Decimal)/, 'number').replace(/(JSON|Json)/, 'Object<any>')}
+      `).join(';')}
     }
-
     export type ${model.name}CreateInput = {
-      ${gqlFields.filter((f) => {
-      const name = f.split(':')[0];
-      const type = f.split(':')[1].trim().replace('!', '');
-      const found = listNames.find(element => {
-        if (element.includes(name)) { return element }
-      })
-      return (
-        ( type == 'String' ||
-          type == 'Int' ||
-          type == 'Float' ||
-          type == 'Boolean' ||
-          type == 'JSON' ||
-          type == 'Decimal' ||
-          type.toLocaleLowerCase().includes('enum') ||
-          type == 'DateTime') &&
-          name != 'createdAt' &&
-          name != 'updatedAt' &&
-          name != found
-      );
-    })}
-    }
-    export type ${model.name}WhereUniqueInput = {
-      id:String
+      ${model.fields.filter((field: any) => (!(field.isId || field.isRelatedModel || field.isArray || field.name === 'updatedAt' || field.name === 'createdAt')))
+      .map((field: any) => (`
+      ${field.name}${!field.required ? '?' : ''}: ${field.type.replace(
+          'String',
+          'string'
+        ).replace('DateTime', 'Date').replace(/(Int|Float|Decimal)/, 'number').replace(/(JSON|Json)/, 'Object<any>')}
+      `
+  ))}
     }
     export type ${model.name}UpdateInput = {
-    where: {id: String};
-    data:{${gqlUpdateFields
-        .map((f) => {
-          return f.replace('!', '');
-        })
-      }}
-    }
+        ${model.fields.filter((field: any) => (!(field.isId || field.isRelatedModel || field.isArray || field.name === 'updatedAt' || field.name === 'createdAt')))
+        .map((field: any) => (`
+        ${field.name}?: ${field.type.replace(
+            'String',
+            'string'
+          ).replace('DateTime', 'Date').replace(/(Int|Float|Decimal)/, 'number').replace(/(JSON|Json)/, 'Object<any>')}
+        `
+    ))}
+      }
+     export type ${model.name}WhereUniqueInput = {
+        ${model.fields.filter((field: any) => (field.isId || field.isUnique))
+        .map((field: any) => (`
+        ${field.name}?: ${field.type.replace(
+            'String',
+            'string'
+          ).replace('DateTime', 'Date').replace(/(Int|Float|Decimal)/, 'number').replace(/(JSON|Json)/, 'Object<any>')}
+        `
+    ))}
+      }
+    `
+  ).join(';')}
   `;
 
-  // Devuelve el nombre del modelo y el modelo GraphQL
-  return { name: model.name, model: gqlModel };
+  // const baseFile = `
+  // export const sessionConfig = {
+  //   Parent: [
+  //     ${unique.map((i: string) => {
+  //       return ` { name: '${i}', roles: ['Admin'], isPublic: false } `;
+  //     })}
+  //   ],
+  //   Mutation: [
+  //     ${gqlModels?.map((model: any) => `
+  //     // ${model.name}
+  //     { name: 'create${model.name}', roles: ['Admin'], isPublic: false },
+  //     { name: 'update${model.name}', roles: ['Admin'], isPublic: false },
+  //     { name: 'upsert${model.name}', roles: ['Admin'], isPublic: false },
+  //     { name: 'delete${model.name}', roles: ['Admin'], isPublic: false }
+  //     `)}
+  //   ],
+  //   Query: [
+  //     ${gqlModels?.map((model: any) => `
+  //     // ${model.name}
+  //     { name: '${unCapitalize(model.name)}s', roles: ['Admin'], isPublic: false },
+  //     { name: '${unCapitalize(model.name)}', roles: ['Admin'], isPublic: false }
+  //     `)}
+  //   ]
+  // }`;
+
+  // Escribimos el archivo
+  await writeFile(
+    path.join(process.cwd(), `prisma/generated/types.ts`),
+    baseFile
+  );
 };
 
-// Exporta la función
-export { generateTypeObject };
+// Exportamos la función
+export { createTypeObject };
