@@ -19,7 +19,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
         (value: any, index: any, array: any) => array.indexOf(value) === index
       )}} from '@prisma/client'
     import { Resolver } from '@/types';
-    import { ${model.name}CreateInput, ${model.name}UpdateInput, ${model.name}WhereUniqueInput } from '../../types.ts'
+    import { ${model.name}CreateInput, ${model.name}UpdateInput, ${model.name}WhereDeleteInput, ${model.name}WhereUniqueInput } from '../../types.ts'
     import { ${unCapitalize(model.name)}DataLoader } from './dataLoaders'
     ${model.name != 'User'?'':`import { sendUserDataToAuth0 } from '@/utils/createUserInAuth0';`}
  
@@ -154,7 +154,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
             data:{...args.data}
           })
       },
-      delete${model.name}:async (_: null, args: ${model.name}WhereUniqueInput, { db, session })=>{
+      delete${model.name}:async (_: null, args: ${model.name}WhereDeleteInput, { db, session })=>{
           return await db.${unCapitalize(model.name)}.delete({
             where:{
               id:args.where.id

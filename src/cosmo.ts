@@ -58,7 +58,7 @@ const cosmo = async () => {
 
   await createSessionConfig(gqlSchemas, parsedModels);
 
-  await createTypeObject(gqlSchemas, parsedModels);
+  await createTypeObject(parsedModels);
 
   // create resolvers
   parsedModels?.map(async (model) => {
