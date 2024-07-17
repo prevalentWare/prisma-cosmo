@@ -45,20 +45,14 @@ const cosmo = async () => {
     return generateSchemaObject(model);
   });
 
-  // create file containing the types in typescript for every model
-  // const gqlSchemasTypescript = await parsedModels?.map((model) => {
-  //   return generateTypeObject(model);
-  // });
-
   // create files resolvers for every model
   await createModelsFiles(gqlSchemas)
 
   await createSchemasFiles(gqlSchemas, enums);
 
-  // await createTypesFile(gqlSchemasTypescript)
-
   await createSessionConfig(gqlSchemas, parsedModels);
 
+  // create file containing the types in typescript for every model
   await createTypeObject(parsedModels, parsedEnums);
 
   // create resolvers
