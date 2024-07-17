@@ -10,6 +10,7 @@ import { createResolvers } from './utils/createResolversModel';
 import { createDirectory } from './utils/createDirectory';
 import { createDataLoaders } from './utils/createDataLoadersModel'
 import { createSessionConfig } from './utils/createSessionConfig';
+import { createTypeObject } from './utils/generateTypeObject';
 import rimraf from 'rimraf';
 
 const readFile = promisify(fs.readFile);
@@ -37,6 +38,7 @@ const cosmo = async () => {
 
   // create file for enums
   const enums = file.match(/enum([^}]+)}/g);
+  const parsedEnums = Array.from(file.matchAll(/enum\s+([A-Za-z_][A-Za-z0-9_]*)/g)).map(match => match[1]);
 
   // create file containing the types for every model
   const gqlSchemas = await parsedModels?.map((model) => {
@@ -49,6 +51,9 @@ const cosmo = async () => {
   await createSchemasFiles(gqlSchemas, enums);
 
   await createSessionConfig(gqlSchemas, parsedModels);
+
+  // create file containing the types in typescript for every model
+  await createTypeObject(parsedModels, parsedEnums);
 
   // create resolvers
   parsedModels?.map(async (model) => {
