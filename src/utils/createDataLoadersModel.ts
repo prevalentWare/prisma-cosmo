@@ -25,7 +25,7 @@ const getRelationField = (
   relationName: string
 ): string => {
   const regex = new RegExp(
-    `@relation\\((?:name:\s?)?"${relationName}".*?fields:\\[(.*?)\\]`
+    `@relation\\((?:name: )?"${relationName}".*?fields:\\[(.*?)\\]`
   );
   for (const attr of attributes) {
     const match = attr.match(regex);
