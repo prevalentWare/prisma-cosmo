@@ -9,6 +9,7 @@ const getModelUniqueFields = (uniqueFields: PrismaField[]) => {
       .replace('String', 'string')
       .replace('DateTime', 'Date')
       .replace(/(Int|Float|Decimal)/, 'number')
+      .replace('Boolean', 'boolean')
       .replace(/(JSON|Json)/, 'Object<any>')}`;
   }
   return uniqueFields.map(field => `
@@ -16,6 +17,7 @@ const getModelUniqueFields = (uniqueFields: PrismaField[]) => {
       .replace('String', 'string')
       .replace('DateTime', 'Date')
       .replace(/(Int|Float|Decimal)/, 'number')
+      .replace('Boolean', 'boolean')
       .replace(/(JSON|Json)/, 'Object<any>')}`).join('');
 };
 
@@ -25,6 +27,7 @@ const getModelFields = (fields: PrismaField[]) => fields.map(field => `
     .replace('String', 'string')
     .replace('DateTime', 'Date')
     .replace(/(Int|Float|Decimal)/, 'number')
+    .replace('Boolean', 'boolean')
     .replace(/(JSON|Json)/, 'Object<any>')}`).join(';');
 
 // Función para crear los campos de entrada
@@ -39,6 +42,7 @@ const getModelCreateInputFields = (fields: PrismaField[]) => fields.filter(field
     .replace('String', 'string')
     .replace('DateTime', 'Date')
     .replace(/(Int|Float|Decimal)/, 'number')
+    .replace('Boolean', 'boolean')
     .replace(/(JSON|Json)/, 'Object<any>')}`).join('');
 
 const getModelUpdateInputFields = (fields: PrismaField[]) => fields.filter(field => !(
@@ -52,6 +56,7 @@ const getModelUpdateInputFields = (fields: PrismaField[]) => fields.filter(field
     .replace('String', 'string')
     .replace('DateTime', 'Date')
     .replace(/(Int|Float|Decimal)/, 'number')
+    .replace('Boolean', 'boolean')
     .replace(/(JSON|Json)/, 'Object<any>')}`).join('');
 
 // Función principal para crear la configuración de la sesión
