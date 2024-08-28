@@ -1,6 +1,3 @@
 import { GQLModel } from '../types';
-declare const generateTypeObject: (model: GQLModel) => {
-    name: string;
-    model: string;
-};
-export { generateTypeObject };
+declare const createTypeObject: (parsedModels: GQLModel[] | undefined, enums: string[] | null) => Promise<void>;
+export { createTypeObject };
