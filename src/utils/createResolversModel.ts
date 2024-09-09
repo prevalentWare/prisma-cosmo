@@ -65,9 +65,10 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
                   ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()   
                   return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.${relatedField});
 
-                }
+                };
 
                 return null;
+              }
               `
         } else {
           //one to one
