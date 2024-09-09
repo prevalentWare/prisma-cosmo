@@ -32,9 +32,6 @@ const createBaseResolversFile = async (gqlModels: GQLModel[] | undefined) => {
       .join(', ');
 
     const baseFile = `
-      import { withSessionCheck } from '../auth/withSessionCheck';
-      import { Enum_ResolverType, Resolver } from '@/types';
-
       // Importaciones de los resolvers
       import { generalResolvers } from './general/resolvers';
       ${resolversImport}
@@ -44,32 +41,12 @@ const createBaseResolversFile = async (gqlModels: GQLModel[] | undefined) => {
       ${typesImport}
 
       // Array de resolvers
-      const resolverArray = [${resolverArray}].map((el) => {
-        const mappedResolver: Resolver = { Query: {}, Mutation: {} };
-        Object.keys(el).forEach((key) => {
-          const resolverObj = el[key];
-          let resolverName = Enum_ResolverType.Parent;
-          if (key === 'Query') resolverName = Enum_ResolverType.Query;
-          if (key === 'Mutation') resolverName = Enum_ResolverType.Mutation;
-
-          Object.keys(resolverObj).forEach((resolverKey) => {
-            resolverObj[resolverKey] = withSessionCheck(
-              resolverObj[resolverKey],
-              resolverKey,
-              resolverName
-            );
-          });
-          mappedResolver[key] = resolverObj;
-        });
-        return el;
-      });
-
+      const resolverArray = [${resolverArray}]
       // Array de tipos
       const typesArray = [
         generalTypes,
         ${typesArray}
       ];
-
       export {  resolverArray, typesArray };
     `;
 
