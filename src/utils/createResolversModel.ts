@@ -13,11 +13,7 @@ function betweenMarkers(text: string, begin: string, end: string) {
 const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
   const relatedFields = model.fields.filter((f) => f.isRelatedModel);
   const resolverFile = `
-    import { ${relatedFields
-      .map((i) => i.type.charAt(0).toUpperCase() + i.type.slice(1))
-      .filter(
-        (value: any, index: any, array: any) => array.indexOf(value) === index
-      )}} from '@prisma/client'
+    import { ${model.name} } from '@prisma/client'
     import { Resolver } from '@/types';
     import { ${model.name}CreateInput, ${model.name}UpdateInput, ${model.name}WhereDeleteInput, ${model.name}WhereUniqueInput } from '../../types.ts';
     import { ${unCapitalize(model.name)}DataLoader } from './dataLoaders';
@@ -35,7 +31,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
           )[0];
           if (relatedModelRelation.isArray) {
             return `
-                ${rf.name}: async (parent: ${rf.type}, _: null, { db, session }) => {
+                ${rf.name}: async (parent: ${model.name}, _: null, { db, session }) => {
                     ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()
                     return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.id);
                 }
@@ -43,7 +39,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
           } else {
             //many to one
             return `
-                ${rf.name}: async (parent: ${rf.type}, _: null, { db,session }) => {
+                ${rf.name}: async (parent: ${model.name}, _: null, { db,session }) => {
                   ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()
                   return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.id);
                 }`
@@ -60,7 +56,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
           );
           
           return `
-              ${rf.name}: async (parent: ${rf.type}, _: null, { db,session }) => {
+              ${rf.name}: async (parent: ${model.name}, _: null, { db,session }) => {
                 if (parent?.${relatedField}) {
                   ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()   
                   return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.${relatedField});
@@ -97,12 +93,12 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
               'fields:[',
               ']'
             );
-            return `${rf.name}: async (parent: ${rf.type}, _: null, { db, session }) => {
+            return `${rf.name}: async (parent: ${model.name}, _: null, { db, session }) => {
                   ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()   
                   return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.${relatedField});
                 }`;
           } else {
-            return `${rf.name}: async (parent: ${rf.type}, _: null, { db,session }) => {
+            return `${rf.name}: async (parent: ${model.name}, _: null, { db,session }) => {
                     ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()  
                     return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.id);
                     }`;
