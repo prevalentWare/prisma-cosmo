@@ -19,9 +19,8 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
         (value: any, index: any, array: any) => array.indexOf(value) === index
       )}} from '@prisma/client'
     import { Resolver } from '@/types';
-    import { ${model.name}CreateInput, ${model.name}UpdateInput, ${model.name}WhereDeleteInput, ${model.name}WhereUniqueInput } from '../../types.ts'
-    import { ${unCapitalize(model.name)}DataLoader } from './dataLoaders'
-    ${model.name != 'User'?'':`import { sendUserDataToAuth0 } from '@/utils/createUserInAuth0';`}
+    import { ${model.name}CreateInput, ${model.name}UpdateInput, ${model.name}WhereDeleteInput, ${model.name}WhereUniqueInput } from '../../types.ts';
+    import { ${unCapitalize(model.name)}DataLoader } from './dataLoaders';
  
     const ${unCapitalize(model.name)}Resolvers: Resolver = {
     ${model.name}: {
@@ -134,18 +133,11 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
         },
     },
     Mutation:{
-      ${model.name != 'User' ? `
-        create${model.name}:async (_: null, args: ${model.name}CreateInput, { db,session })=>{
-          return await db.${unCapitalize(model.name)}.create({
-            data:{...args.data}
-          })
-        },`
-      :
-      `
-        create${model.name}:async (_: null, args: ${model.name}CreateInput, { db,session })=>{
-          return await createUserInAuth0(args, db)
-        },`
-    }
+      create${model.name}:async (_: null, args: ${model.name}CreateInput, { db,session })=>{
+        return await db.${unCapitalize(model.name)}.create({
+          data:{...args.data}
+        })
+      },
       update${model.name}:async (_: null, args: ${model.name}UpdateInput, { db, session })=>{
           return await db.${unCapitalize(model.name)}.update({
             where:{
