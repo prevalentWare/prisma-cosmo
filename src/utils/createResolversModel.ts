@@ -58,27 +58,17 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
             'fields:[',
             ']'
           );
-          if (rf.required) {
-            return `
-                ${rf.name}: async (parent: ${rf.type}, _: null, { db, session }) => {
-                ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()  
-                return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.${relatedField});
-                }
-                `
-          } else {
-            return `
-                ${rf.name}: async (parent: ${rf.type}, _: null, { db,session }) => {
-                  if (parent.${relatedField}) {
-                    ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()   
-                    return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.${relatedField});
+          
+          return `
+              ${rf.name}: async (parent: ${rf.type}, _: null, { db,session }) => {
+                if (parent?.${relatedField}) {
+                  ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()   
+                  return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.${relatedField});
 
-                  }
-                  else{
-                    return null;
-                  }
                 }
-                `;
-          }
+
+                return null;
+              `
         } else {
           //one to one
           if (rf.attributes.length > 0) {
