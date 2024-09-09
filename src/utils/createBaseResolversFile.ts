@@ -12,17 +12,26 @@ const createBaseResolversFile = async (gqlModels: GQLModel[] | undefined) => {
   if (gqlModels) {
     // Importaciones de los resolvers
     const resolversImport = gqlModels
-      .map((model) => `import { ${unCapitalize(model.name)}Resolvers } from './${model.name.toLowerCase()}/resolvers';`)
+      .map(
+        (model) =>
+          `import { ${unCapitalize(
+            model.name
+          )}Resolvers } from './${model.name.toLowerCase()}/resolvers';`
+      )
       .join('\n');
 
     // Importaciones de los tipos
     const typesImport = gqlModels
-      .map((model) => `import { ${unCapitalize(model.name)}Types } from './${model.name.toLowerCase()}/types';`)
+      .map(
+        (model) =>
+          `import { ${unCapitalize(
+            model.name
+          )}Types } from './${model.name.toLowerCase()}/types';`
+      )
       .join('\n');
 
     const resolverArray = [
-      ...gqlModels
-      .map((model) => `${unCapitalize(model.name)}Resolvers`),
+      ...gqlModels.map((model) => `${unCapitalize(model.name)}Resolvers`),
       'generalResolvers',
     ].join(',');
 
@@ -32,9 +41,9 @@ const createBaseResolversFile = async (gqlModels: GQLModel[] | undefined) => {
       .join(', ');
 
     const baseFile = `
-      import { withSessionCheck } from '../auth/withSessionCheck';
-      import { Enum_ResolverType, Resolver } from '@/types';
-
+      // import { withSessionCheck } from '../auth/withSessionCheck';
+      // import { Enum_ResolverType, Resolver } from '@/types';
+      
       // Importaciones de los resolvers
       import { generalResolvers } from './general/resolvers';
       ${resolversImport}
@@ -44,25 +53,28 @@ const createBaseResolversFile = async (gqlModels: GQLModel[] | undefined) => {
       ${typesImport}
 
       // Array de resolvers
-      const resolverArray = [${resolverArray}].map((el) => {
-        const mappedResolver: Resolver = { Query: {}, Mutation: {} };
-        Object.keys(el).forEach((key) => {
-          const resolverObj = el[key];
-          let resolverName = Enum_ResolverType.Parent;
-          if (key === 'Query') resolverName = Enum_ResolverType.Query;
-          if (key === 'Mutation') resolverName = Enum_ResolverType.Mutation;
+      const resolverArray = [${resolverArray}]
 
-          Object.keys(resolverObj).forEach((resolverKey) => {
-            resolverObj[resolverKey] = withSessionCheck(
-              resolverObj[resolverKey],
-              resolverKey,
-              resolverName
-            );
-          });
-          mappedResolver[key] = resolverObj;
-        });
-        return el;
-      });
+      // we comment this out because we plan to move the RBAC model to the database.
+      // const resolverArray = [${resolverArray}].map((el) => {
+      //   const mappedResolver: Resolver = { Query: {}, Mutation: {} };
+      //   Object.keys(el).forEach((key) => {
+      //     const resolverObj = el[key];
+      //     let resolverName = Enum_ResolverType.Parent;
+      //     if (key === 'Query') resolverName = Enum_ResolverType.Query;
+      //     if (key === 'Mutation') resolverName = Enum_ResolverType.Mutation;
+
+      //     Object.keys(resolverObj).forEach((resolverKey) => {
+      //       resolverObj[resolverKey] = withSessionCheck(
+      //         resolverObj[resolverKey],
+      //         resolverKey,
+      //         resolverName
+      //       );
+      //     });
+      //     mappedResolver[key] = resolverObj;
+      //   });
+      //   return el;
+      // });
 
       // Array de tipos
       const typesArray = [
