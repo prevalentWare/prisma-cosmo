@@ -97,7 +97,6 @@ const generateSchemaObject = (model: GQLModel) => {
     }
     type Mutation {
         create${model.name}(data:${model.name}CreateInput):${model.name}
-        upsert${model.name}(where:${model.name}WhereUniqueInput!, data:${model.name}UpdateInput ):${model.name}
         update${model.name}(where:${model.name}WhereUniqueInput!, data:${model.name}UpdateInput ):${model.name}
         delete${model.name}(where: ${model.name}WhereUniqueInput!):${model.name}
     }
