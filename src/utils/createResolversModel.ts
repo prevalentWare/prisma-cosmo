@@ -78,21 +78,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
                 f.attributes.filter((a) => a.includes(relationName))
                   .length > 0
             )[0];
-            const relatedModel = parsedModels.filter(
-              (pm) => pm.name === relatedField.type
-            )[0];
-            const relatedModelRelation = relatedModel.fields.filter(
-              (fld) => fld.type === model.name
-            )[0];
 
-            const relationFieldName = betweenMarkers(
-              relatedModelRelation.attributes
-                .filter((a) => a.includes('@relation'))[0]
-                .split(',')
-                .filter((a) => a.includes('fields'))[0],
-              'fields:[',
-              ']'
-            );
             return `${rf.name}: async (parent: ${model.name}, _: null, { db, session }) => {
                   ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()   
                   return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.${relatedField});
