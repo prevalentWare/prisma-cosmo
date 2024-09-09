@@ -15,7 +15,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
   const resolverFile = `
     import { ${model.name} } from '@prisma/client'
     import { Resolver } from '@/types';
-    import { ${model.name}CreateInput, ${model.name}UpdateInput, ${model.name}WhereDeleteInput, ${model.name}WhereUniqueInput } from '../../types.ts';
+    import { ${model.name}CreateInput, ${model.name}UpdateInput, ${model.name}WhereDeleteInput, ${model.name}WhereUniqueInput } from '../../types';
     import { ${unCapitalize(model.name)}DataLoader } from './dataLoaders';
  
     const ${unCapitalize(model.name)}Resolvers: Resolver = {
