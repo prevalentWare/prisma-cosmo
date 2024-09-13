@@ -32,7 +32,7 @@ const createBaseResolversFile = async (gqlModels: GQLModel[] | undefined) => {
 
     const resolverArray = [
       ...gqlModels.map((model) => `${unCapitalize(model.name)}Resolvers`),
-      'generalResolvers',
+      // 'generalResolvers',
     ].join(',');
 
     // Array de tipos
