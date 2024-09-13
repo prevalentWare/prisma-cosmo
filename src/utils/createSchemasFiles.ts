@@ -49,10 +49,7 @@ const createSchemasFiles = async (
     desc # Descending order
   }
 
-  type Query {
-    getSignedUrlForUpload(file: String): PresignedURL
-    getMultipleSignedUrlsForUpload(files: [String]): [PresignedURL]
-  }
+
     
     ${
       enums?.length !== 0 && enums
