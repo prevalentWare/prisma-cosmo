@@ -13,15 +13,10 @@ function betweenMarkers(text: string, begin: string, end: string) {
 const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
   const relatedFields = model.fields.filter((f) => f.isRelatedModel);
   const resolverFile = `
-    import { ${relatedFields
-      .map((i) => i.type.charAt(0).toUpperCase() + i.type.slice(1))
-      .filter(
-        (value: any, index: any, array: any) => array.indexOf(value) === index
-      )}} from '@prisma/client'
+    import { ${model.name} } from '@prisma/client'
     import { Resolver } from '@/types';
-    import { ${model.name}CreateInput, ${model.name}UpdateInput, ${model.name}WhereDeleteInput, ${model.name}WhereUniqueInput } from '../../types.ts'
-    import { ${unCapitalize(model.name)}DataLoader } from './dataLoaders'
-    ${model.name != 'User'?'':`import { sendUserDataToAuth0 } from '@/utils/createUserInAuth0';`}
+    import { ${model.name}CreateInput, ${model.name}UpdateInput, ${model.name}WhereDeleteInput, ${model.name}WhereUniqueInput } from '../../types';
+    import { ${unCapitalize(model.name)}DataLoader } from './dataLoaders';
  
     const ${unCapitalize(model.name)}Resolvers: Resolver = {
     ${model.name}: {
@@ -36,7 +31,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
           )[0];
           if (relatedModelRelation.isArray) {
             return `
-                ${rf.name}: async (parent: ${rf.type}, _: null, { db, session }) => {
+                ${rf.name}: async (parent: ${model.name}, _: null, { db, session }) => {
                     ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()
                     return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.id);
                 }
@@ -44,7 +39,7 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
           } else {
             //many to one
             return `
-                ${rf.name}: async (parent: ${rf.type}, _: null, { db,session }) => {
+                ${rf.name}: async (parent: ${model.name}, _: null, { db,session }) => {
                   ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()
                   return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.id);
                 }`
@@ -59,27 +54,18 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
             'fields:[',
             ']'
           );
-          if (rf.required) {
-            return `
-                ${rf.name}: async (parent: ${rf.type}, _: null, { db, session }) => {
-                ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()  
-                return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.${relatedField});
-                }
-                `
-          } else {
-            return `
-                ${rf.name}: async (parent: ${rf.type}, _: null, { db,session }) => {
-                  if (parent.${relatedField}) {
-                    ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()   
-                    return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.${relatedField});
+          
+          return `
+              ${rf.name}: async (parent: ${model.name}, _: null, { db,session }) => {
+                if (parent?.${relatedField}) {
+                  ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()   
+                  return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.${relatedField});
 
-                  }
-                  else{
-                    return null;
-                  }
-                }
-                `;
-          }
+                };
+
+                return null;
+              }
+              `
         } else {
           //one to one
           if (rf.attributes.length > 0) {
@@ -92,27 +78,13 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
                 f.attributes.filter((a) => a.includes(relationName))
                   .length > 0
             )[0];
-            const relatedModel = parsedModels.filter(
-              (pm) => pm.name === relatedField.type
-            )[0];
-            const relatedModelRelation = relatedModel.fields.filter(
-              (fld) => fld.type === model.name
-            )[0];
 
-            const relationFieldName = betweenMarkers(
-              relatedModelRelation.attributes
-                .filter((a) => a.includes('@relation'))[0]
-                .split(',')
-                .filter((a) => a.includes('fields'))[0],
-              'fields:[',
-              ']'
-            );
-            return `${rf.name}: async (parent: ${rf.type}, _: null, { db, session }) => {
+            return `${rf.name}: async (parent: ${model.name}, _: null, { db, session }) => {
                   ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()   
-                  return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.${relatedField});
+                  return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.${typeof relatedField=== 'object'?'id':relatedField});
                 }`;
           } else {
-            return `${rf.name}: async (parent: ${rf.type}, _: null, { db,session }) => {
+            return `${rf.name}: async (parent: ${model.name}, _: null, { db,session }) => {
                     ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.clearAll()  
                     return await ${unCapitalize(model.name)}DataLoader.${rf.name}Loader.load(parent.id);
                     }`;
@@ -134,18 +106,11 @@ const createResolvers = async (model: GQLModel, parsedModels: GQLModel[]) => {
         },
     },
     Mutation:{
-      ${model.name != 'User' ? `
-        create${model.name}:async (_: null, args: ${model.name}CreateInput, { db,session })=>{
-          return await db.${unCapitalize(model.name)}.create({
-            data:{...args.data}
-          })
-        },`
-      :
-      `
-        create${model.name}:async (_: null, args: ${model.name}CreateInput, { db,session })=>{
-          return await createUserInAuth0(args, db)
-        },`
-    }
+      create${model.name}:async (_: null, args: ${model.name}CreateInput, { db,session })=>{
+        return await db.${unCapitalize(model.name)}.create({
+          data:{...args.data}
+        })
+      },
       update${model.name}:async (_: null, args: ${model.name}UpdateInput, { db, session })=>{
           return await db.${unCapitalize(model.name)}.update({
             where:{

@@ -1,6 +1,6 @@
 {
   "name": "@prevalentware/prisma-cosmo",
-  "version": "0.1.26",
+  "version": "0.1.32",
   "description": "Prisma GraphQL generator",
   "main": "./lib/index.js",
   "author": "prevalentWare",
@@ -20,7 +20,8 @@
     "create": "npm run build && npm run test",
     "start": "ts-node src/index.ts && prettier --config .prettierrc ./prisma/generated/**/*.ts --write",
     "cosmo": "bun run start && prettier --config .prettierrc ./prisma/generated/**/*.ts --write",
-    "build": "rimraf lib && tsc -p . --newLine lf"
+    "build": "rimraf lib && tsc -p . --newLine lf",
+    "publish": "npm publish --access public"
   },
   "devDependencies": {
     "@types/clear": "^0.1.2",

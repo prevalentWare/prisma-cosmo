@@ -13,8 +13,7 @@ This code generates SDL-first Graphql types and resolvers based on a Prisma sche
 3) Make sure that in the Prisma schema you don't have commented lines of code, otherwise the execution could fail.
 
 ## Usage
-1)run the command `yarn aws_cosmo`
-  yarn aws_cosmo
+1)run the command `yarn cosmo`
 
 2) The above command will generate a folder named 'generate' which will contain the gql schema and the basic resolvers for CRUD type operations
 

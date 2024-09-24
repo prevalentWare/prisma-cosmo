@@ -50,7 +50,7 @@ const cosmo = async () => {
 
   await createSchemasFiles(gqlSchemas, enums);
 
-  await createSessionConfig(gqlSchemas, parsedModels);
+  //await createSessionConfig(gqlSchemas, parsedModels);
 
   // create file containing the types in typescript for every model
   await createTypeObject(parsedModels, parsedEnums);
