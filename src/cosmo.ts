@@ -25,7 +25,7 @@ const cosmo = async () => {
 
   await rmrf('./prisma/generated');
   createDirectory('./prisma/generated');
-  createDirectory('./prisma/generated/sessionConfig');
+  // createDirectory('./prisma/generated/sessionConfig');
   createDirectory('./prisma/generated/models');
 
   // parse models to object
