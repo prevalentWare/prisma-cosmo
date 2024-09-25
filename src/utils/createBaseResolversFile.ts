@@ -81,7 +81,6 @@ const createBaseResolversFile = async (gqlModels: GQLModel[] | undefined) => {
         generalTypes,
         ${typesArray}
       ];
-
       export {  resolverArray, typesArray };
     `;
 
