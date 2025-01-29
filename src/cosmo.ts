@@ -8,19 +8,23 @@ import { createModelsFiles } from './utils/createModelsFiles';
 import { createBaseResolversFile } from './utils/createBaseResolversFile';
 import { createResolvers } from './utils/createResolversModel';
 import { createDirectory } from './utils/createDirectory';
-import { createDataLoaders } from './utils/createDataLoadersModel'
+import { createDataLoaders } from './utils/createDataLoadersModel';
 import { createSessionConfig } from './utils/createSessionConfig';
 import { createTypeObject } from './utils/generateTypeObject';
 import rimraf from 'rimraf';
+import { mergeSchemaFiles, cleanGeneratedSchema } from './utils/mergeSchemaFiles';
 
 const readFile = promisify(fs.readFile);
 const rmrf = promisify(rimraf);
 
 const cosmo = async () => {
+  // merge schema files
+  await mergeSchemaFiles();
+
   // read models from prisma file
   const file = await readFile(
     path.join(process.cwd(), 'prisma/schema.prisma'),
-    { encoding: 'utf-8', }
+    { encoding: 'utf-8' }
   );
 
   await rmrf('./prisma/generated');
@@ -38,7 +42,9 @@ const cosmo = async () => {
 
   // create file for enums
   const enums = file.match(/enum([^}]+)}/g);
-  const parsedEnums = Array.from(file.matchAll(/enum\s+([A-Za-z_][A-Za-z0-9_]*)/g)).map(match => match[1]);
+  const parsedEnums = Array.from(
+    file.matchAll(/enum\s+([A-Za-z_][A-Za-z0-9_]*)/g)
+  ).map((match) => match[1]);
 
   // create file containing the types for every model
   const gqlSchemas = await parsedModels?.map((model) => {
@@ -46,7 +52,7 @@ const cosmo = async () => {
   });
 
   // create files resolvers for every model
-  await createModelsFiles(gqlSchemas)
+  await createModelsFiles(gqlSchemas);
 
   await createSchemasFiles(gqlSchemas, enums);
 
@@ -66,7 +72,8 @@ const cosmo = async () => {
   //create resolver file
   await createBaseResolversFile(parsedModels);
 
+  // Clean up generated schema if it was created from multiple files
+  await cleanGeneratedSchema();
 };
 
 export { cosmo };
-
