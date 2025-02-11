@@ -18,7 +18,7 @@ A powerful tool that automatically generates SDL-first GraphQL types and resolve
 bun add prisma-cosmo
 
 # Using npm
-npm install prisma-cosmo
+npm install @prevalentware/prisma-cosmo
 
 # Using yarn
 yarn add prisma-cosmo
