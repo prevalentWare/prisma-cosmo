@@ -22,7 +22,9 @@
   "scripts": {
     "create": "npm run build && npm run test",
     "start": "ts-node src/index.ts && prettier --config .prettierrc ./prisma/generated/**/*.ts --write",
+    "start:federated": "ts-node src/index.ts --federated && prettier --config .prettierrc ./prisma/generated/**/*.ts --write",
     "cosmo": "bun run start && prettier --config .prettierrc ./prisma/generated/**/*.ts --write",
+    "cosmo:federated": "bun run start:federated && prettier --config .prettierrc ./prisma/generated/**/*.ts --write",
     "build": "rimraf lib && tsc -p . --newLine lf",
     "publish": "npm publish --access public"
   },

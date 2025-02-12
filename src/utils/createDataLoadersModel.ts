@@ -47,8 +47,22 @@ const createDataLoaders = async (model: GQLModel, parsedModels: GQLModel[]) => {
       .map((i) => i.type.charAt(0).toUpperCase() + i.type.slice(1))
       .filter(
         (value: any, index: any, array: any) => array.indexOf(value) === index
-      )}} from '@prisma/client'
+      )}, ${model.name}} from '@prisma/client'
     import { getDB } from '@/db';
+
+    // Add base model loader
+    const ${unCapitalize(model.name)}Loader = () => 
+      async (ids: readonly string[]): Promise<(${
+        model.name
+      } | undefined)[]> => {
+        const db = await getDB();
+        const items = await db.${unCapitalize(model.name)}.findMany({
+          where: {
+            id: { in: [...ids] }
+          }
+        });
+        return ids.map(id => items.find(item => item.id === id));
+      };
 
     ${relatedFields
       .map((rf) => {
@@ -63,43 +77,43 @@ const createDataLoaders = async (model: GQLModel, parsedModels: GQLModel[]) => {
           if (relatedModelRelation.isArray) {
             // many to many
             return `
-          // Loader para la relación muchos a muchos
-          const ${rf.name}Loader = () =>
-          async (ids: readonly string[]): Promise<(${
-            rf.type.charAt(0).toUpperCase() + rf.type.slice(1)
-          } | undefined)[]> => {
-            const db = await getDB()
-            const ${rf.name}= await db.${unCapitalize(
+        // Loader para la relación muchos a muchos
+        const ${rf.name}Loader = () =>
+        async (ids: readonly string[]): Promise<(${
+          rf.type.charAt(0).toUpperCase() + rf.type.slice(1)
+        } | undefined)[]> => {
+          const db = await getDB()
+          const ${rf.name}= await db.${unCapitalize(
               relatedModel.name
             )}.findMany({
-                    where: {
-                      ${relatedModelRelation.name}: {
-                        some: {
-                          id: { in: [...ids] }
-                        },
+                  where: {
+                    ${relatedModelRelation.name}: {
+                      some: {
+                        id: { in: [...ids] }
                       },
                     },
-                    include: {
-                      ${relatedModelRelation.name}: {
-                          select: {
-                              id: true
-                          }
-                      }
+                  },
+                  include: {
+                    ${relatedModelRelation.name}: {
+                        select: {
+                            id: true
+                        }
                     }
-                  });
-                  return ids.map((id) => {
-                    const list: any = []
-                    ${rf.name}.find((${rf.name}) => {
-                        return ${rf.name}.${
+                  }
+                });
+                return ids.map((id) => {
+                  const list: any = []
+                  ${rf.name}.find((${rf.name}) => {
+                      return ${rf.name}.${
               relatedModelRelation.name
             }.some((i) => {
-                                if (i.id === id) {list.push(${rf.name})}
-                            });
-                        });
-                        return list
-                      })
-                    }
-          `;
+                              if (i.id === id) {list.push(${rf.name})}
+                          });
+                      });
+                      return list
+                    })
+                  }
+        `;
           } else {
             // one to many
             const attribute = relatedModel.fields
@@ -124,34 +138,34 @@ const createDataLoaders = async (model: GQLModel, parsedModels: GQLModel[]) => {
               )?.name || '';
 
             return `
-              // Loader para la relación uno a muchos
-              const ${
-                rf.name
-              }Loader = () => async (ids: readonly string[]): Promise<(${
+            // Loader para la relación uno a muchos
+            const ${
+              rf.name
+            }Loader = () => async (ids: readonly string[]): Promise<(${
               rf.type.charAt(0).toUpperCase() + rf.type.slice(1)
             }[] | undefined)[]> => {
-                const db = await getDB()
-                const ${rf.name}= await db.${unCapitalize(rf.type)}.findMany({
-                          where: {
-                              ${
-                                relatedFieldName
-                                  ? relatedFieldName
-                                  : relatedModel.fields.filter(
-                                      (f) => f.type === model.name
-                                    )[0].name
-                              }: {
-                                is: {
-                                  id: { in: [...ids] },
-                                },
+              const db = await getDB()
+              const ${rf.name}= await db.${unCapitalize(rf.type)}.findMany({
+                        where: {
+                            ${
+                              relatedFieldName
+                                ? relatedFieldName
+                                : relatedModel.fields.filter(
+                                    (f) => f.type === model.name
+                                  )[0].name
+                            }: {
+                              is: {
+                                id: { in: [...ids] },
                               },
-                          },
-                      })
-                      return ids.map((id)=>{
-                        return ${rf.name}.filter(i => i.${
+                            },
+                        },
+                    })
+                    return ids.map((id)=>{
+                      return ${rf.name}.filter(i => i.${
               field ? field : fields[0]
             } == id)
-                      })
-              }`;
+                    })
+            }`;
           }
         } else if (
           // many to one
@@ -164,23 +178,23 @@ const createDataLoaders = async (model: GQLModel, parsedModels: GQLModel[]) => {
             ']'
           );
           return `
-        // Loader para la relación muchos a uno
-          const ${
-            rf.name
-          }Loader = () => async (ids: readonly string[]): Promise<(${
+      // Loader para la relación muchos a uno
+        const ${
+          rf.name
+        }Loader = () => async (ids: readonly string[]): Promise<(${
             rf.type.charAt(0).toUpperCase() + rf.type.slice(1)
           } | undefined)[]> => {
-            const db = await getDB()
-            const ${rf.name}=  await db.${unCapitalize(rf.type)}.findMany({
-                        where: {
-                          id: { in: [...ids] },
-                        },
-                    });
-                    return ids.map((id) => {
-                      return ${rf.name}.find(${rf.name} => ${rf.name}.id == id)
-                    })
-                  }
-            `;
+          const db = await getDB()
+          const ${rf.name}=  await db.${unCapitalize(rf.type)}.findMany({
+                      where: {
+                        id: { in: [...ids] },
+                      },
+                  });
+                  return ids.map((id) => {
+                    return ${rf.name}.find(${rf.name} => ${rf.name}.id == id)
+                  })
+                }
+        `;
         } else {
           // one to one
           if (rf.attributes.length > 0) {
@@ -208,47 +222,51 @@ const createDataLoaders = async (model: GQLModel, parsedModels: GQLModel[]) => {
               ']'
             );
             return `
-          // Loader para la relación uno a uno
-          const ${
-            rf.name
-          }Loader = () => async (ids: readonly string[]): Promise<(${
+        // Loader para la relación uno a uno
+        const ${
+          rf.name
+        }Loader = () => async (ids: readonly string[]): Promise<(${
               rf.type.charAt(0).toUpperCase() + rf.type.slice(1)
             } | undefined)[]> => {
-            const db = await getDB()
-            const ${rf.name}=await db.${unCapitalize(rf.type)}.findMany({
-                    where:{
-                      ${relationFieldName}:{in:[...ids]}
-                    }
-                  })
-                  return ids.map((id) => {
-                    return ${rf.name}.find(${rf.name} => ${rf.name}.id == id)
-                  })
-                }`;
+          const db = await getDB()
+          const ${rf.name}=await db.${unCapitalize(rf.type)}.findMany({
+                  where:{
+                    ${relationFieldName}:{in:[...ids]}
+                  }
+                })
+                return ids.map((id) => {
+                  return ${rf.name}.find(${rf.name} => ${rf.name}.id == id)
+                })
+              }`;
           } else {
             return `
-          const ${
-            rf.name
-          }Loader = () => async (ids: readonly string[]): Promise<(${
+        const ${
+          rf.name
+        }Loader = () => async (ids: readonly string[]): Promise<(${
               rf.type.charAt(0).toUpperCase() + rf.type.slice(1)
             } | undefined)[]> => {
-            const db = await getDB()
-            const ${rf.name}= await db.${unCapitalize(rf.type)}.findMany({
-                    where:{
-                      ${unCapitalize(model.name)}Id:{in:[...ids]}
-                    }
-                  })
-                  return ids.map((id) => {
-                    return ${rf.name}.find(${rf.name} => ${
+          const db = await getDB()
+          const ${rf.name}= await db.${unCapitalize(rf.type)}.findMany({
+                  where:{
+                    ${unCapitalize(model.name)}Id:{in:[...ids]}
+                  }
+                })
+                return ids.map((id) => {
+                  return ${rf.name}.find(${rf.name} => ${
               rf.name
             }.${unCapitalize(model.name)}Id == id)
-                  })
-          }`;
+                })
+        }`;
           }
         }
       })
       .join('')}
 
     const ${unCapitalize(model.name)}DataLoader =  {
+      // Add base loader to the exported object
+      loader: new DataLoader<string, ${model.name} | undefined>(${unCapitalize(
+    model.name
+  )}Loader()),
       ${relatedFields.map((i) => {
         let typeName = i.type.charAt(0).toUpperCase() + i.type.slice(1);
         const verifyTypo = listTypes.find((i) => i == typeName);
@@ -256,8 +274,8 @@ const createDataLoaders = async (model: GQLModel, parsedModels: GQLModel[]) => {
         return `
         ${i.name}Loader: new DataLoader <string,${typeName} | undefined>(${i.name}Loader())`;
       })}
-      };
-      export { ${unCapitalize(model.name)}DataLoader };
+    };
+    export { ${unCapitalize(model.name)}DataLoader };
   `;
 
   await writeFile(

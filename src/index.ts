@@ -25,14 +25,16 @@ console.log(
 const program = new Command();
 program
   .version('0.0.1')
-  .description('A tool that generates Graphql files from the Prisma Schema');
+  .description('A tool that generates Graphql files from the Prisma Schema')
+  .option('--federated', 'Enable federation mode');
+
+program.parse(process.argv);
 
 const main = async () => {
-  await cosmo();
+  const options = program.opts();
+  await cosmo(options);
 
   console.log('finished file output');
-
 };
-
 
 main();

@@ -3,15 +3,17 @@ import { GQLModel } from '../types';
 import { unCapitalize } from './capitalize';
 
 // Función para generar el esquema del objeto
-const generateSchemaObject = (model: GQLModel) => {
+const generateSchemaObject = (model: GQLModel, federated: boolean) => {
   // Lista para almacenar los nombres de los campos
   const listNames: string[] = [];
 
   // Mapeo de los campos del modelo
   const gqlFields = model.fields.map((field) => {
     // Busca si el atributo tiene un valor por defecto
-    const found = field.attributes.find(element => {
-      if (element.includes("@default")) { return element }
+    const found = field.attributes.find((element) => {
+      if (element.includes('@default')) {
+        return element;
+      }
     });
 
     // Si el campo tiene un valor por defecto y no es 'id' ni 'createdAt', se añade a la lista
@@ -20,8 +22,8 @@ const generateSchemaObject = (model: GQLModel) => {
     }
 
     // Reemplaza los tipos de datos por su equivalente en GraphQL
-    field.gqlType = field.gqlType.replace("DateTime", "DateTime");
-    field.gqlType = field.gqlType.replace("Json", "JSON");
+    field.gqlType = field.gqlType.replace('DateTime', 'DateTime');
+    field.gqlType = field.gqlType.replace('Json', 'JSON');
 
     // Devuelve el campo con su tipo de dato
     return `${field.name}: ${field.gqlType}`;
@@ -50,46 +52,49 @@ const generateSchemaObject = (model: GQLModel) => {
     });
 
   // Genera el modelo GraphQL
+
+  const federatedKey = federated ? '@key(fields: "id")' : '';
+
   const gqlModel = `
   import gql from 'graphql-tag';
 
-  export const ${unCapitalize(model.name)}Types = gql ${"`"}
+  export const ${unCapitalize(model.name)}Types = gql ${'`'}
 
-    type ${model.name}{
+    type ${model.name} ${federatedKey} {
       ${gqlFields}
     }
 
     input ${model.name}CreateInput{
       ${gqlFields.filter((f) => {
-      const name = f.split(':')[0];
-      const type = f.split(':')[1].trim().replace('!', '');
-      const found = listNames.find(element => {
-        if (element.includes(name)) { return element }
-      })
-      return (
-        ( type == 'String' ||
-          type == 'Int' ||
-          type == 'Float' ||
-          type == 'Boolean' ||
-          type == 'JSON' ||
-          type == 'Decimal' ||
-          type.toLocaleLowerCase().includes('enum') ||
-          type == 'DateTime') &&
+        const name = f.split(':')[0];
+        const type = f.split(':')[1].trim().replace('!', '');
+        const found = listNames.find((element) => {
+          if (element.includes(name)) {
+            return element;
+          }
+        });
+        return (
+          (type == 'String' ||
+            type == 'Int' ||
+            type == 'Float' ||
+            type == 'Boolean' ||
+            type == 'JSON' ||
+            type == 'Decimal' ||
+            type.toLocaleLowerCase().includes('enum') ||
+            type == 'DateTime') &&
           name != 'createdAt' &&
           name != 'updatedAt' &&
           name != found
-      );
-    })}
+        );
+      })}
     }
     input ${model.name}WhereUniqueInput{
       id:String!
     }
     input ${model.name}UpdateInput{
-    ${gqlUpdateFields
-        .map((f) => {
-          return f.replace('!', '');
-        })
-      }
+    ${gqlUpdateFields.map((f) => {
+      return f.replace('!', '');
+    })}
     }
     type Query{
       ${unCapitalize(model.name)}s:[${model.name}]
@@ -97,10 +102,12 @@ const generateSchemaObject = (model: GQLModel) => {
     }
     type Mutation {
         create${model.name}(data:${model.name}CreateInput):${model.name}
-        update${model.name}(where:${model.name}WhereUniqueInput!, data:${model.name}UpdateInput ):${model.name}
+        update${model.name}(where:${model.name}WhereUniqueInput!, data:${
+    model.name
+  }UpdateInput ):${model.name}
         delete${model.name}(where: ${model.name}WhereUniqueInput!):${model.name}
     }
-  ${"`"}
+  ${'`'}
   `;
 
   // Devuelve el nombre del modelo y el modelo GraphQL

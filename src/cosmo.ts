@@ -12,12 +12,20 @@ import { createDataLoaders } from './utils/createDataLoadersModel';
 import { createSessionConfig } from './utils/createSessionConfig';
 import { createTypeObject } from './utils/generateTypeObject';
 import rimraf from 'rimraf';
-import { mergeSchemaFiles, cleanGeneratedSchema } from './utils/mergeSchemaFiles';
+import {
+  mergeSchemaFiles,
+  cleanGeneratedSchema,
+} from './utils/mergeSchemaFiles';
 
 const readFile = promisify(fs.readFile);
 const rmrf = promisify(rimraf);
 
-const cosmo = async () => {
+interface CosmoOptions {
+  federated?: boolean;
+}
+
+const cosmo = async (options: CosmoOptions = {}) => {
+  console.log('Running cosmo with options:', options);
   // merge schema files
   await mergeSchemaFiles();
 
@@ -48,7 +56,7 @@ const cosmo = async () => {
 
   // create file containing the types for every model
   const gqlSchemas = await parsedModels?.map((model) => {
-    return generateSchemaObject(model);
+    return generateSchemaObject(model, options.federated ?? false);
   });
 
   // create files resolvers for every model
@@ -63,7 +71,7 @@ const cosmo = async () => {
 
   // create resolvers
   parsedModels?.map(async (model) => {
-    await createResolvers(model, parsedModels);
+    await createResolvers(model, parsedModels, options.federated ?? false);
   });
   parsedModels?.map(async (model) => {
     await createDataLoaders(model, parsedModels);
