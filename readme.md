@@ -15,10 +15,10 @@ A powerful tool that automatically generates SDL-first GraphQL types and resolve
 
 ```bash
 # Using bun (recommended)
-bun add prisma-cosmo
+bun add @prevalentware/prisma-cosmo
 
 # Using npm
-npm install prisma-cosmo
+npm install @prevalentware/prisma-cosmo
 
 # Using yarn
 yarn add prisma-cosmo
