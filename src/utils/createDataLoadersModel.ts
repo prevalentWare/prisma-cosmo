@@ -41,6 +41,17 @@ const getRelationField = (
 const createDataLoaders = async (model: GQLModel, parsedModels: GQLModel[]) => {
   const relatedFields = model.fields.filter((f) => f.isRelatedModel);
   const listTypes: string[] = [];
+
+  if (relatedFields.length === 0) {
+    return await writeFile(
+      path.join(
+        process.cwd(),
+        `prisma/generated/models/${model.name.toLowerCase()}/dataLoaders.ts`
+      ),
+      `const ${unCapitalize(model.name)}Loader = () => {}`
+    );
+  }
+
   const resolverFile = `
     import { default as DataLoader } from 'dataloader';
     import { ${relatedFields
