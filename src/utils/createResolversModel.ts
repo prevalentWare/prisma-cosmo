@@ -83,11 +83,16 @@ const createResolvers = async (
                 'fields:[',
                 ']'
               );
-
               return `
               ${rf.name}: async (parent: ${
                 model.name
               }, _: null, { db,session }) => {
+
+                if (parent && Object.keys(parent).includes('${rf.name}')) { 
+                  // @ts-ignore - Prisma types don't include loaded relations
+                  return parent.${rf.name}
+                }
+
                 if (parent?.${relatedField}) {
                   ${unCapitalize(model.name)}DataLoader.${
                 rf.name
